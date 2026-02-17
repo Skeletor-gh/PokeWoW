@@ -1,6 +1,42 @@
 local addonName, ns = ...
 local Core = ns.Core
 
+local function PlayCheckboxSound(checked)
+    if checked then
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+    else
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+    end
+end
+
+local function SetControlEnabled(control, enabled)
+    if control.SetEnabled then
+        control:SetEnabled(enabled)
+    end
+
+    if control.Text then
+        local r, g, b = 1, 1, 1
+        if not enabled then
+            r, g, b = 0.5, 0.5, 0.5
+        end
+        control.Text:SetTextColor(r, g, b)
+    end
+end
+
+local function SetPanelEnabled(panel, enabled)
+    panel:SetAlpha(enabled and 1 or 0.45)
+    panel:EnableMouse(enabled)
+    panel:EnableMouseWheel(enabled)
+
+    if not panel.controls then
+        return
+    end
+
+    for _, control in ipairs(panel.controls) do
+        SetControlEnabled(control, enabled)
+    end
+end
+
 local function CreateTitle(parent, text)
     local title = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
@@ -52,6 +88,7 @@ end
 local function BuildWelcomePanel()
     local panel = CreateFrame("Frame")
     panel:Hide()
+    panel.controls = {}
 
     CreateTitle(panel, "PokeWoW")
     CreateBody(panel, "Welcome to PokeWoW, your UX and QoL toolbox for Pet Battles.\n\nLatest patch notes:\n- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.")
@@ -61,13 +98,46 @@ local function BuildWelcomePanel()
     bg:SetTexture("Interface\\AddOns\\PokeWoW\\assets\\images\\welcome-bg")
     bg:SetVertexColor(1, 1, 1, 0.08)
 
+    local addonEnabledCheckbox = CreateFrame("CheckButton", addonName .. "AddonEnabledCheckbox", panel, "UICheckButtonTemplate")
+    addonEnabledCheckbox:SetPoint("TOPLEFT", 16, -120)
+    addonEnabledCheckbox.Text:SetText("Enable PokeWoW")
+    addonEnabledCheckbox:SetChecked(Core:IsAddonEnabled())
+
+    local customMusicCheckbox = CreateFrame("CheckButton", addonName .. "CustomMusicEnabledCheckbox", panel, "UICheckButtonTemplate")
+    customMusicCheckbox:SetPoint("TOPLEFT", 16, -155)
+    customMusicCheckbox.Text:SetText("Enable Custom Pet Battle Music")
+    customMusicCheckbox:SetChecked(Core.db.customMusicEnabled)
+
+    panel.controls = { addonEnabledCheckbox, customMusicCheckbox }
+
+    addonEnabledCheckbox:SetScript("OnClick", function(self)
+        local checked = self:GetChecked()
+        PlayCheckboxSound(checked)
+        Core:SetAddonEnabled(checked)
+        Core:PrintStatus("Addon " .. (checked and "enabled." or "disabled."))
+
+        SetControlEnabled(customMusicCheckbox, checked)
+        ns.RefreshOptionsState()
+    end)
+
+    customMusicCheckbox:SetScript("OnClick", function(self)
+        local checked = self:GetChecked()
+        PlayCheckboxSound(checked)
+        Core:SetCustomMusicEnabled(checked)
+        Core:PrintStatus("Custom pet battle music " .. (checked and "enabled." or "disabled."))
+        ns.RefreshOptionsState()
+    end)
+
     CreateFooter(panel)
-    return AddCategory(panel, "PokeWoW")
+    local category = AddCategory(panel, "PokeWoW")
+    ns.rootPanel = panel
+    return category
 end
 
 local function BuildMusicPanel(parentName)
     local panel = CreateFrame("Frame")
     panel:Hide()
+    panel.controls = {}
 
     CreateTitle(panel, "Pet Battle Music Replacer")
     CreateBody(panel, "Replace default Pet Battle music using your custom track list from MusicTracks.lua.")
@@ -149,8 +219,29 @@ local function BuildMusicPanel(parentName)
     UIDropDownMenu_SetWidth(trackDropdown, 260)
     RefreshTrackDropdown()
 
+    panel.controls = { modeDropdown, trackDropdown }
+
     CreateFooter(panel)
-    return AddCategory(panel, "Pet Battle Music", parentName)
+    local category = AddCategory(panel, "Pet Battle Music", parentName)
+    ns.musicPanel = panel
+    return category
+end
+
+function ns.RefreshOptionsState()
+    if not Core or not Core.db then
+        return
+    end
+
+    local addonEnabled = Core:IsAddonEnabled()
+    local customMusicEnabled = Core.db.customMusicEnabled
+
+    if ns.rootPanel and ns.rootPanel.controls and ns.rootPanel.controls[2] then
+        SetControlEnabled(ns.rootPanel.controls[2], addonEnabled)
+    end
+
+    if ns.musicPanel then
+        SetPanelEnabled(ns.musicPanel, addonEnabled and customMusicEnabled)
+    end
 end
 
 function ns.CreateOptionsPanels()
@@ -160,5 +251,6 @@ function ns.CreateOptionsPanels()
 
     local root = BuildWelcomePanel()
     BuildMusicPanel(root)
+    ns.RefreshOptionsState()
     ns.optionsBuilt = true
 end
