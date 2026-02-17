@@ -96,7 +96,7 @@ local function BuildWelcomePanel(parentCategory)
     local bg = panel:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(panel)
     bg:SetTexture("Interface\\AddOns\\PokeWoW\\Assets\\pokewow.png")
-    bg:SetAlpha(0.5)
+    bg:SetAlpha(0.3)
 
     local addonEnabledCheckbox = CreateFrame("CheckButton", addonName .. "AddonEnabledCheckbox", panel, "UICheckButtonTemplate")
     addonEnabledCheckbox:SetPoint("TOPLEFT", 16, -120)
