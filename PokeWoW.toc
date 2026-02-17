@@ -3,6 +3,8 @@
 ## Notes: UX and QoL tools for Pet Battles.
 ## Author: skeletor-gh
 ## Version: 0.1.0
+## IconTexture: Interface\AddOns\PokeWoW\Assets\pokelogo
+## X-Category: Skeletor
 ## SavedVariables: PokeWoWDB
 
 PokeWoW.lua

@@ -85,7 +85,7 @@ local function AddCategory(panel, title, parentCategory)
     return panel
 end
 
-local function BuildWelcomePanel()
+local function BuildWelcomePanel(parentCategory)
     local panel = CreateFrame("Frame")
     panel:Hide()
     panel.controls = {}
@@ -95,8 +95,8 @@ local function BuildWelcomePanel()
 
     local bg = panel:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(panel)
-    bg:SetTexture("Interface\\AddOns\\PokeWoW\\assets\\images\\welcome-bg")
-    bg:SetVertexColor(1, 1, 1, 0.08)
+    bg:SetTexture("Interface\\AddOns\\PokeWoW\\Assets\\pokewow")
+    bg:SetVertexColor(1, 1, 1, 0.5)
 
     local addonEnabledCheckbox = CreateFrame("CheckButton", addonName .. "AddonEnabledCheckbox", panel, "UICheckButtonTemplate")
     addonEnabledCheckbox:SetPoint("TOPLEFT", 16, -120)
@@ -129,12 +129,12 @@ local function BuildWelcomePanel()
     end)
 
     CreateFooter(panel)
-    local category = AddCategory(panel, "PokeWoW")
+    local category = AddCategory(panel, "PokeWoW", parentCategory)
     ns.rootPanel = panel
     return category
 end
 
-local function BuildMusicPanel(parentName)
+local function BuildMusicPanel(parentCategory)
     local panel = CreateFrame("Frame")
     panel:Hide()
     panel.controls = {}
@@ -222,7 +222,7 @@ local function BuildMusicPanel(parentName)
     panel.controls = { modeDropdown, trackDropdown }
 
     CreateFooter(panel)
-    local category = AddCategory(panel, "Pet Battle Music", parentName)
+    local category = AddCategory(panel, "Pet Battle Music", parentCategory)
     ns.musicPanel = panel
     return category
 end
@@ -249,7 +249,11 @@ function ns.CreateOptionsPanels()
         return
     end
 
-    local root = BuildWelcomePanel()
+    local skeletorPanel = CreateFrame("Frame")
+    skeletorPanel:Hide()
+
+    local skeletorCategory = AddCategory(skeletorPanel, "Skeletor")
+    local root = BuildWelcomePanel(skeletorCategory)
     BuildMusicPanel(root)
     ns.RefreshOptionsState()
     ns.optionsBuilt = true
