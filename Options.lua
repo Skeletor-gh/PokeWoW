@@ -30,16 +30,14 @@ end
 
 local function AddCategory(panel, title, parentCategory)
     if Settings and Settings.RegisterCanvasLayoutCategory then
-        local category = Settings.RegisterCanvasLayoutCategory(panel, title)
-        category.ID = title
-
-        if parentCategory then
-            if type(parentCategory) == "table" and parentCategory.ID then
-                category.parent = parentCategory.ID
-            else
-                category.parent = parentCategory
-            end
+        local category
+        if parentCategory and Settings.RegisterCanvasLayoutSubcategory then
+            category = Settings.RegisterCanvasLayoutSubcategory(parentCategory, panel, title)
+        else
+            category = Settings.RegisterCanvasLayoutCategory(panel, title)
         end
+
+        category.ID = title
 
         Settings.RegisterAddOnCategory(category)
         return category
