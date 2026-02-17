@@ -171,7 +171,15 @@ function Core:RefreshMusic()
 end
 
 function Core:GetVersion()
-    return GetAddOnMetadata(addonName, "Version") or "0.0.0"
+    if C_AddOns and C_AddOns.GetAddOnMetadata then
+        return C_AddOns.GetAddOnMetadata(addonName, "Version") or "0.0.0"
+    end
+
+    if GetAddOnMetadata then
+        return GetAddOnMetadata(addonName, "Version") or "0.0.0"
+    end
+
+    return "0.0.0"
 end
 
 local events = CreateFrame("Frame")

@@ -29,8 +29,24 @@ local function CreateFooter(parent)
 end
 
 local function AddCategory(panel, title, parentCategory)
+    if Settings and Settings.RegisterCanvasLayoutCategory then
+        local category = Settings.RegisterCanvasLayoutCategory(panel, title)
+        category.ID = title
+
+        if parentCategory then
+            if type(parentCategory) == "table" and parentCategory.ID then
+                category.parent = parentCategory.ID
+            else
+                category.parent = parentCategory
+            end
+        end
+
+        Settings.RegisterAddOnCategory(category)
+        return category
+    end
+
     panel.name = title
-    panel.parent = parentCategory
+    panel.parent = type(parentCategory) == "table" and parentCategory.name or parentCategory
     InterfaceOptions_AddCategory(panel)
     return panel
 end
@@ -145,6 +161,6 @@ function ns.CreateOptionsPanels()
     end
 
     local root = BuildWelcomePanel()
-    BuildMusicPanel(root.name)
+    BuildMusicPanel(root)
     ns.optionsBuilt = true
 end
