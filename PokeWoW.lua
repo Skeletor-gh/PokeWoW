@@ -135,6 +135,12 @@ function Core:StopCustomMusic()
         StopSound(self.currentSoundHandle)
         self.currentSoundHandle = nil
     end
+
+    if self.customMusicPlaying and StopMusic then
+        StopMusic()
+    end
+
+    self.customMusicPlaying = false
 end
 
 function Core:IsZoneMusicPlaying()
@@ -180,8 +186,15 @@ function Core:PlayTrack(track)
         return nil
     end
 
+    if PlayMusic then
+        PlayMusic(track.path)
+        self.customMusicPlaying = true
+        return true
+    end
+
     local _, handle = PlaySoundFile(track.path, "Music")
     self.currentSoundHandle = handle
+    self.customMusicPlaying = true
     return handle
 end
 
