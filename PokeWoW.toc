@@ -5,6 +5,7 @@
 ## Version: 0.1.0
 ## IconTexture: Interface\AddOns\PokeWoW\Assets\pokelogo
 ## X-Category: Skeletor
+## Category: Skeletor
 ## SavedVariables: PokeWoWDB
 
 PokeWoW.lua
