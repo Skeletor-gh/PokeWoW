@@ -5,6 +5,8 @@ local Core = PokeWoW
 ns.Core = Core
 
 Core.defaults = {
+    addonEnabled = true,
+    customMusicEnabled = true,
     music = {
         mode = "SEQUENTIAL", -- NO_MUSIC | SINGLE_LOOP | SEQUENTIAL | RANDOM
         singleTrack = 1,
@@ -33,6 +35,14 @@ end
 function Core:InitDB()
     PokeWoWDB = PokeWoWDB or {}
 
+    if PokeWoWDB.addonEnabled == nil then
+        PokeWoWDB.addonEnabled = self.defaults.addonEnabled
+    end
+
+    if PokeWoWDB.customMusicEnabled == nil then
+        PokeWoWDB.customMusicEnabled = self.defaults.customMusicEnabled
+    end
+
     if type(PokeWoWDB.music) ~= "table" then
         PokeWoWDB.music = deepcopy(self.defaults.music)
     end
@@ -44,6 +54,23 @@ function Core:InitDB()
     end
 
     self.db = PokeWoWDB
+end
+
+function Core:PrintStatus(message)
+    local text = "|cFFFF8C00PokeWoW|r " .. message
+    if DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.AddMessage then
+        DEFAULT_CHAT_FRAME:AddMessage(text)
+    else
+        print(text)
+    end
+end
+
+function Core:IsAddonEnabled()
+    return self.db and self.db.addonEnabled
+end
+
+function Core:IsCustomMusicEnabled()
+    return self:IsAddonEnabled() and self.db and self.db.customMusicEnabled
 end
 
 function Core:GetTracks()
@@ -75,8 +102,27 @@ function Core:MuteDefaultPetBattleMusic(mute)
     end
 end
 
-function Core:ApplyNoMusicCVar()
-    SetCVar("Sound_EnablePetBattleMusic", self.db.music.mode == "NO_MUSIC" and "0" or "1")
+function Core:EnsurePetBattleMusicCVarEnabled()
+    if GetCVar("Sound_EnablePetBattleMusic") == "0" then
+        SetCVar("Sound_EnablePetBattleMusic", "1")
+    end
+end
+
+function Core:ApplyPetBattleMusicCVar()
+    if not self:IsAddonEnabled() then
+        return
+    end
+
+    if self:IsCustomMusicEnabled() and self.inPetBattle then
+        SetCVar("Sound_EnablePetBattleMusic", "0")
+        return
+    end
+
+    if self.db.music.mode == "NO_MUSIC" then
+        SetCVar("Sound_EnablePetBattleMusic", "0")
+    else
+        SetCVar("Sound_EnablePetBattleMusic", "1")
+    end
 end
 
 function Core:StopCustomMusic()
@@ -112,7 +158,7 @@ function Core:ScheduleNextPlay(delay)
 end
 
 function Core:PlayMusicCycle()
-    if not self.inPetBattle then
+    if not self.inPetBattle or not self:IsCustomMusicEnabled() then
         return
     end
 
@@ -147,27 +193,65 @@ function Core:PlayMusicCycle()
 end
 
 function Core:OnPetBattleStart()
+    if not self:IsAddonEnabled() then
+        return
+    end
+
     self.inPetBattle = true
     self:MuteDefaultPetBattleMusic(true)
-    self:ApplyNoMusicCVar()
-    self:PlayMusicCycle()
+    self:ApplyPetBattleMusicCVar()
+
+    if self:IsCustomMusicEnabled() then
+        C_Timer.After(0.2, function()
+            if self.inPetBattle and self:IsCustomMusicEnabled() then
+                self:PlayMusicCycle()
+            end
+        end)
+    end
 end
 
 function Core:OnPetBattleEnd()
     self.inPetBattle = false
     self:StopCustomMusic()
     self:MuteDefaultPetBattleMusic(false)
+    self:ApplyPetBattleMusicCVar()
 end
 
 function Core:RefreshMusic()
     if not self.inPetBattle then
-        self:ApplyNoMusicCVar()
+        self:ApplyPetBattleMusicCVar()
         return
     end
 
     self:StopCustomMusic()
-    self:ApplyNoMusicCVar()
+    self:ApplyPetBattleMusicCVar()
     self:PlayMusicCycle()
+end
+
+function Core:SetAddonEnabled(enabled)
+    self.db.addonEnabled = enabled and true or false
+    if not self.db.addonEnabled then
+        self.inPetBattle = false
+        self:StopCustomMusic()
+        self:MuteDefaultPetBattleMusic(false)
+    end
+    self:ApplyPetBattleMusicCVar()
+end
+
+function Core:SetCustomMusicEnabled(enabled)
+    self.db.customMusicEnabled = enabled and true or false
+
+    if self.db.customMusicEnabled then
+        self:EnsurePetBattleMusicCVarEnabled()
+    else
+        self:StopCustomMusic()
+    end
+
+    self:ApplyPetBattleMusicCVar()
+
+    if self.inPetBattle and self:IsCustomMusicEnabled() then
+        self:PlayMusicCycle()
+    end
 end
 
 function Core:GetVersion()
@@ -190,7 +274,7 @@ events:RegisterEvent("PET_BATTLE_CLOSE")
 events:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
         Core:InitDB()
-        Core:ApplyNoMusicCVar()
+        Core:ApplyPetBattleMusicCVar()
 
         if ns.CreateOptionsPanels then
             ns.CreateOptionsPanels()
