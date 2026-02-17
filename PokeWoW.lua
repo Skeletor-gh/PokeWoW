@@ -137,6 +137,44 @@ function Core:StopCustomMusic()
     end
 end
 
+function Core:IsZoneMusicPlaying()
+    if IsMusicPlaying then
+        return IsMusicPlaying()
+    end
+
+    return false
+end
+
+function Core:PauseZoneMusic()
+    self.zoneMusicWasPlaying = self:IsZoneMusicPlaying()
+
+    if self.zoneMusicWasPlaying and StopMusic then
+        StopMusic()
+    end
+end
+
+function Core:ResumeZoneMusicIfNeeded()
+    if not self.zoneMusicWasPlaying then
+        return
+    end
+
+    self.zoneMusicWasPlaying = false
+
+    if RestartMusic then
+        RestartMusic()
+        return
+    end
+
+    -- Fallback for clients without RestartMusic.
+    if GetCVar and SetCVar then
+        local previous = GetCVar("Sound_EnableMusic")
+        if previous == "1" then
+            SetCVar("Sound_EnableMusic", "0")
+            SetCVar("Sound_EnableMusic", "1")
+        end
+    end
+end
+
 function Core:PlayTrack(track)
     if not track or not track.path then
         return nil
@@ -198,6 +236,7 @@ function Core:OnPetBattleStart()
     end
 
     self.inPetBattle = true
+    self:PauseZoneMusic()
     self:MuteDefaultPetBattleMusic(true)
     self:ApplyPetBattleMusicCVar()
 
@@ -213,6 +252,7 @@ end
 function Core:OnPetBattleEnd()
     self.inPetBattle = false
     self:StopCustomMusic()
+    self:ResumeZoneMusicIfNeeded()
     self:MuteDefaultPetBattleMusic(false)
     self:ApplyPetBattleMusicCVar()
 end
@@ -233,6 +273,7 @@ function Core:SetAddonEnabled(enabled)
     if not self.db.addonEnabled then
         self.inPetBattle = false
         self:StopCustomMusic()
+        self:ResumeZoneMusicIfNeeded()
         self:MuteDefaultPetBattleMusic(false)
     end
     self:ApplyPetBattleMusicCVar()
