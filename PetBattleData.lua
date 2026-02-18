@@ -32,6 +32,7 @@ local OWNER_MAP = {
 }
 
 local PET_SLOTS = 3
+local PET_SLOT_BASE_CANDIDATES = { 1, 0 }
 local OWNER_PAIR_CANDIDATES = {
     { player = 1, enemy = 2 },
     { player = 0, enemy = 1 },
@@ -149,20 +150,46 @@ local function BuildPet(owner, petIndex, isActive)
 end
 
 local function BuildTeamSnapshot(owner)
-    local activePetIndex = C_PetBattles.GetActivePet(owner)
+    local activePetIndex = NumberOrNil(C_PetBattles.GetActivePet(owner))
     local totalSlots = NumberOrNil(C_PetBattles.GetNumPets(owner)) or PET_SLOTS
     if totalSlots < PET_SLOTS then
         totalSlots = PET_SLOTS
     end
 
+    local selectedBase = 1
+    local bestScore = -1
+
+    for _, base in ipairs(PET_SLOT_BASE_CANDIDATES) do
+        local score = 0
+        for displayIndex = 1, totalSlots do
+            local sourceIndex = displayIndex + base - 1
+            if PetExists(owner, sourceIndex) then
+                score = score + 1
+            end
+        end
+
+        if activePetIndex ~= nil then
+            local normalized = activePetIndex - base + 1
+            if normalized >= 1 and normalized <= totalSlots then
+                score = score + 1
+            end
+        end
+
+        if score > bestScore then
+            bestScore = score
+            selectedBase = base
+        end
+    end
+
     local team = {
         owner = owner,
-        activePetIndex = NumberOrNil(activePetIndex),
+        activePetIndex = (activePetIndex and (activePetIndex - selectedBase + 1)) or nil,
         pets = {},
     }
 
-    for petIndex = 1, totalSlots do
-        team.pets[petIndex] = BuildPet(owner, petIndex, petIndex == activePetIndex)
+    for displayIndex = 1, totalSlots do
+        local sourceIndex = displayIndex + selectedBase - 1
+        team.pets[displayIndex] = BuildPet(owner, sourceIndex, sourceIndex == activePetIndex)
     end
 
     return team
@@ -173,7 +200,7 @@ local function TeamHasData(team)
         return false
     end
 
-    if team.activePetIndex and team.activePetIndex > 0 then
+    if team.activePetIndex and team.activePetIndex >= 1 then
         return true
     end
 
