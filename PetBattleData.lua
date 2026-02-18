@@ -32,6 +32,10 @@ local OWNER_MAP = {
 }
 
 local PET_SLOTS = 3
+local OWNER_PAIR_CANDIDATES = {
+    { player = 1, enemy = 2 },
+    { player = 0, enemy = 1 },
+}
 
 local PET_TYPE_LABELS = {
     [1] = "Humanoid",
@@ -164,6 +168,46 @@ local function BuildTeamSnapshot(owner)
     return team
 end
 
+local function TeamHasData(team)
+    if not team or not team.pets then
+        return false
+    end
+
+    if team.activePetIndex and team.activePetIndex > 0 then
+        return true
+    end
+
+    for _, pet in ipairs(team.pets) do
+        if pet and pet.exists then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function ResolveOwnerPair()
+    local candidates = {
+        { player = OWNER_MAP.player, enemy = OWNER_MAP.enemy },
+    }
+
+    for _, pair in ipairs(OWNER_PAIR_CANDIDATES) do
+        table.insert(candidates, pair)
+    end
+
+    for _, pair in ipairs(candidates) do
+        if pair.player ~= nil and pair.enemy ~= nil and pair.player ~= pair.enemy then
+            local playerTeam = BuildTeamSnapshot(pair.player)
+            local enemyTeam = BuildTeamSnapshot(pair.enemy)
+            if TeamHasData(playerTeam) or TeamHasData(enemyTeam) then
+                return pair, playerTeam, enemyTeam
+            end
+        end
+    end
+
+    return { player = OWNER_MAP.player, enemy = OWNER_MAP.enemy }, BuildTeamSnapshot(OWNER_MAP.player), BuildTeamSnapshot(OWNER_MAP.enemy)
+end
+
 function PetBattleData.BuildBattleSnapshot()
     if not C_PetBattles or not C_PetBattles.IsInBattle or not C_PetBattles.IsInBattle() then
         return {
@@ -173,12 +217,12 @@ function PetBattleData.BuildBattleSnapshot()
         }
     end
 
-    local player = BuildTeamSnapshot(OWNER_MAP.player)
-    local enemy = BuildTeamSnapshot(OWNER_MAP.enemy)
+    local ownerPair, player, enemy = ResolveOwnerPair()
 
     return {
         player = player,
         enemy = enemy,
+        ownerPair = ownerPair,
         active = {
             playerIndex = player.activePetIndex,
             enemyIndex = enemy.activePetIndex,
