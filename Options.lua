@@ -108,7 +108,12 @@ local function BuildWelcomePanel(parentCategory)
     customMusicCheckbox.Text:SetText("Enable Custom Pet Battle Music")
     customMusicCheckbox:SetChecked(Core.db.customMusicEnabled)
 
-    panel.controls = { addonEnabledCheckbox, customMusicCheckbox }
+    local petBattleUICheckbox = CreateFrame("CheckButton", addonName .. "PetBattleUIEnabledCheckbox", panel, "UICheckButtonTemplate")
+    petBattleUICheckbox:SetPoint("TOPLEFT", 16, -190)
+    petBattleUICheckbox.Text:SetText("Enable Pet Battle Party Frames")
+    petBattleUICheckbox:SetChecked(Core.db.petBattleUIEnabled)
+
+    panel.controls = { addonEnabledCheckbox, customMusicCheckbox, petBattleUICheckbox }
 
     addonEnabledCheckbox:SetScript("OnClick", function(self)
         local checked = self:GetChecked()
@@ -125,6 +130,14 @@ local function BuildWelcomePanel(parentCategory)
         PlayCheckboxSound(checked)
         Core:SetCustomMusicEnabled(checked)
         Core:PrintStatus("Custom pet battle music " .. (checked and "enabled." or "disabled."))
+        ns.RefreshOptionsState()
+    end)
+
+    petBattleUICheckbox:SetScript("OnClick", function(self)
+        local checked = self:GetChecked()
+        PlayCheckboxSound(checked)
+        Core:SetPetBattleUIEnabled(checked)
+        Core:PrintStatus("Pet battle UI " .. (checked and "enabled." or "disabled."))
         ns.RefreshOptionsState()
     end)
 
@@ -227,6 +240,20 @@ local function BuildMusicPanel(parentCategory)
     return category
 end
 
+local function BuildPetBattleUIPanel(parentCategory)
+    local panel = CreateFrame("Frame")
+    panel:Hide()
+    panel.controls = {}
+
+    CreateTitle(panel, "Pet Battle UI")
+    CreateBody(panel, "This section will contain options for the custom Pet Battle party frames.\n\nMore settings are coming in future updates.")
+    CreateFooter(panel)
+
+    local category = AddCategory(panel, "Pet Battle UI", parentCategory)
+    ns.petBattleUIPanel = panel
+    return category
+end
+
 function ns.RefreshOptionsState()
     if not Core or not Core.db then
         return
@@ -239,8 +266,16 @@ function ns.RefreshOptionsState()
         SetControlEnabled(ns.rootPanel.controls[2], addonEnabled)
     end
 
+    if ns.rootPanel and ns.rootPanel.controls and ns.rootPanel.controls[3] then
+        SetControlEnabled(ns.rootPanel.controls[3], addonEnabled)
+    end
+
     if ns.musicPanel then
         SetPanelEnabled(ns.musicPanel, addonEnabled and customMusicEnabled)
+    end
+
+    if ns.petBattleUIPanel then
+        SetPanelEnabled(ns.petBattleUIPanel, addonEnabled)
     end
 end
 
@@ -251,6 +286,7 @@ function ns.CreateOptionsPanels()
 
     local root = BuildWelcomePanel()
     BuildMusicPanel(root)
+    BuildPetBattleUIPanel(root)
     ns.RefreshOptionsState()
     ns.optionsBuilt = true
 end

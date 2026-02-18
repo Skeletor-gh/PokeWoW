@@ -7,6 +7,7 @@ ns.Core = Core
 Core.defaults = {
     addonEnabled = true,
     customMusicEnabled = true,
+    petBattleUIEnabled = true,
     music = {
         mode = "SEQUENTIAL", -- NO_MUSIC | SINGLE_LOOP | SEQUENTIAL | RANDOM
         singleTrack = 1,
@@ -43,6 +44,10 @@ function Core:InitDB()
         PokeWoWDB.customMusicEnabled = self.defaults.customMusicEnabled
     end
 
+    if PokeWoWDB.petBattleUIEnabled == nil then
+        PokeWoWDB.petBattleUIEnabled = self.defaults.petBattleUIEnabled
+    end
+
     if type(PokeWoWDB.music) ~= "table" then
         PokeWoWDB.music = deepcopy(self.defaults.music)
     end
@@ -71,6 +76,10 @@ end
 
 function Core:IsCustomMusicEnabled()
     return self:IsAddonEnabled() and self.db and self.db.customMusicEnabled
+end
+
+function Core:IsPetBattleUIEnabled()
+    return self:IsAddonEnabled() and self.db and self.db.petBattleUIEnabled
 end
 
 function Core:GetTracks()
@@ -260,6 +269,10 @@ function Core:OnPetBattleStart()
             end
         end)
     end
+
+    if ns.PetBattleUI and ns.PetBattleUI.OnBattleStart then
+        ns.PetBattleUI:OnBattleStart()
+    end
 end
 
 function Core:OnPetBattleEnd()
@@ -268,6 +281,10 @@ function Core:OnPetBattleEnd()
     self:ResumeZoneMusicIfNeeded()
     self:MuteDefaultPetBattleMusic(false)
     self:ApplyPetBattleMusicCVar()
+
+    if ns.PetBattleUI and ns.PetBattleUI.OnBattleEnd then
+        ns.PetBattleUI:OnBattleEnd()
+    end
 end
 
 function Core:RefreshMusic()
@@ -289,6 +306,11 @@ function Core:SetAddonEnabled(enabled)
         self:ResumeZoneMusicIfNeeded()
         self:MuteDefaultPetBattleMusic(false)
     end
+
+    if ns.PetBattleUI and ns.PetBattleUI.ApplyVisibility then
+        ns.PetBattleUI:ApplyVisibility()
+    end
+
     self:ApplyPetBattleMusicCVar()
 end
 
@@ -305,6 +327,14 @@ function Core:SetCustomMusicEnabled(enabled)
 
     if self.inPetBattle and self:IsCustomMusicEnabled() then
         self:PlayMusicCycle()
+    end
+end
+
+function Core:SetPetBattleUIEnabled(enabled)
+    self.db.petBattleUIEnabled = enabled and true or false
+
+    if ns.PetBattleUI and ns.PetBattleUI.ApplyVisibility then
+        ns.PetBattleUI:ApplyVisibility()
     end
 end
 
