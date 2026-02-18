@@ -5,11 +5,41 @@ local PetBattleUI = {}
 ns.PetBattleUI = PetBattleUI
 
 local PET_SLOTS = 3
+local ENEMY_OWNER = Enum and Enum.BattlePetOwner and Enum.BattlePetOwner.Enemy or 2
+local ALLY_OWNER = Enum and Enum.BattlePetOwner and Enum.BattlePetOwner.Ally or 1
+local UNKNOWN_ICON = 134400
+
+-- Each pet family maps to { strongAgainst, weakAgainst } for battle hints.
+local VULNERABILITIES = {
+    { 4, 5 }, -- Humanoid
+    { 1, 3 }, -- Dragonkin
+    { 6, 8 }, -- Flying
+    { 5, 2 }, -- Undead
+    { 8, 7 }, -- Critter
+    { 2, 9 }, -- Magic
+    { 9, 10 }, -- Elemental
+    { 10, 1 }, -- Beast
+    { 3, 4 }, -- Aquatic
+    { 7, 6 }, -- Mechanical
+}
+
+local abilityListBuffer = {}
+local abilityLevelBuffer = {}
 
 local function FormatHealthText(health, maxHealth)
     health = tonumber(health) or 0
     maxHealth = tonumber(maxHealth) or 0
     return string.format("%d / %d", health, maxHealth)
+end
+
+local function ClearArray(tbl)
+    if not tbl then
+        return
+    end
+
+    for index = #tbl, 1, -1 do
+        tbl[index] = nil
+    end
 end
 
 local function CreatePetSubframe(parent, ownerLabel, petIndex)
@@ -113,6 +143,260 @@ function PetBattleUI:EnsureFrames()
 
     self.playerFrame = CreatePartyFrame("TOPLEFT", "TOPLEFT", 24, -180, "Player")
     self.enemyFrame = CreatePartyFrame("TOPRIGHT", "TOPRIGHT", -24, -180, "Enemy")
+
+    self:EnsureEnemyAbilityFrame()
+end
+
+function PetBattleUI:CreateAbilityButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(52, 52)
+
+    button.back = button:CreateTexture(nil, "BACKGROUND")
+    button.back:SetAllPoints(true)
+    button.back:SetTexture("Interface\\ItemSocketingFrame\\UI-EngineeringSockets")
+    button.back:SetTexCoord(0.015625, 0.6875, 0.412109375, 0.49609375)
+
+    button.icon = button:CreateTexture(nil, "BORDER")
+    button.icon:SetPoint("TOPLEFT", 6, -6)
+    button.icon:SetPoint("BOTTOMRIGHT", -6, 6)
+    button.icon:SetTexture(UNKNOWN_ICON)
+    button.icon:SetTexCoord(0.0725, 0.9275, 0.0725, 0.9275)
+
+    button.hint = button:CreateTexture(nil, "ARTWORK")
+    button.hint:SetSize(20, 20)
+    button.hint:SetPoint("BOTTOMRIGHT")
+    button.hint:Hide()
+
+    button.cooldown = button:CreateFontString(nil, "ARTWORK", "GameFont_Gigantic")
+    button.cooldown:SetPoint("CENTER")
+    button.cooldown:Hide()
+
+    button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    button.highlight:SetPoint("TOPLEFT")
+    button.highlight:SetPoint("BOTTOMRIGHT")
+    button.highlight:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    button.highlight:SetBlendMode("ADD")
+
+    button:SetScript("OnEnter", function(btn)
+        self:ShowAbilityTooltip(btn)
+    end)
+    button:SetScript("OnLeave", function()
+        self:HideAbilityTooltip()
+    end)
+
+    return button
+end
+
+function PetBattleUI:SetAbilityButtonHalfHeight(button, isHalf)
+    if isHalf then
+        button:SetHeight(26)
+        button.icon:SetPoint("TOPLEFT", 6, -3)
+        button.icon:SetPoint("BOTTOMRIGHT", -6, 3)
+        button.icon:SetTexCoord(0.0725, 0.9275, 0.3225, 0.6775)
+    else
+        button:SetHeight(52)
+        button.icon:SetPoint("TOPLEFT", 6, -6)
+        button.icon:SetPoint("BOTTOMRIGHT", -6, 6)
+        button.icon:SetTexCoord(0.0725, 0.9275, 0.0725, 0.9275)
+    end
+end
+
+function PetBattleUI:EnsureEnemyAbilityFrame()
+    if self.enemyAbilityFrame then
+        return
+    end
+
+    local frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    frame:SetSize(172, 68)
+    frame:SetPoint("TOP", UIParent, "TOP", 0, -220)
+    frame:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 8,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+    })
+    frame:Hide()
+
+    frame.buttons = {}
+    for i = 1, 6 do
+        frame.buttons[i] = self:CreateAbilityButton(frame)
+        self:SetAbilityButtonHalfHeight(frame.buttons[i], false)
+
+        if i <= 3 then
+            frame.buttons[i]:SetPoint("TOPLEFT", (i - 1) * 54 + 6, -8)
+            frame.buttons[i]:SetID(i)
+        else
+            frame.buttons[i]:SetPoint("TOPLEFT", frame.buttons[i - 3], "BOTTOMLEFT")
+            frame.buttons[i]:SetID(i - 3)
+            self:SetAbilityButtonHalfHeight(frame.buttons[i], true)
+            frame.buttons[i]:Hide()
+        end
+    end
+
+    self.enemyAbilityFrame = frame
+end
+
+function PetBattleUI:ShowAbilityTooltip(button)
+    if not button or not button.abilityID then
+        return
+    end
+
+    if not PetBattlePrimaryAbilityTooltip or not PetBattleAbilityTooltip_SetAbilityByID then
+        return
+    end
+
+    local activeEnemyPet = C_PetBattles.GetActivePet(ENEMY_OWNER)
+    if activeEnemyPet == nil then
+        return
+    end
+
+    PetBattleAbilityTooltip_SetAbilityByID(ENEMY_OWNER, activeEnemyPet, button.abilityID)
+    PetBattlePrimaryAbilityTooltip:ClearAllPoints()
+    PetBattlePrimaryAbilityTooltip:SetPoint("BOTTOM", button, "TOP", 0, 0)
+    PetBattlePrimaryAbilityTooltip:Show()
+end
+
+function PetBattleUI:HideAbilityTooltip()
+    if PetBattlePrimaryAbilityTooltip then
+        PetBattlePrimaryAbilityTooltip:Hide()
+    end
+end
+
+function PetBattleUI:FillAbilityButton(button, abilityID)
+    button.abilityID = abilityID
+
+    if not abilityID then
+        button.icon:SetTexture(UNKNOWN_ICON)
+        button.icon:SetDesaturated(true)
+        button.icon:SetVertexColor(0.5, 0.5, 0.5)
+        button.hint:Hide()
+        return
+    end
+
+    local _, abilityIcon, _, abilityType = C_PetBattles.GetAbilityInfoByID(abilityID)
+    button.icon:SetTexture(abilityIcon or UNKNOWN_ICON)
+    button.icon:SetDesaturated(false)
+    button.icon:SetVertexColor(1, 1, 1)
+    button.hint:Hide()
+
+    local allyActivePet = C_PetBattles.GetActivePet(ALLY_OWNER)
+    if not allyActivePet then
+        return
+    end
+
+    local myPetType = C_PetBattles.GetPetType(ALLY_OWNER, allyActivePet)
+    local relation = myPetType and VULNERABILITIES[myPetType]
+    if not relation or not abilityType then
+        return
+    end
+
+    if relation[1] == abilityType then
+        button.hint:SetTexture("Interface\\PetBattles\\BattleBar-AbilityBadge-Strong")
+        button.hint:Show()
+    elseif relation[2] == abilityType then
+        button.hint:SetTexture("Interface\\PetBattles\\BattleBar-AbilityBadge-Weak")
+        button.hint:Show()
+    end
+end
+
+local function ResolveCooldown(owner, petIndex, abilityIndex, stateCooldown, stateLockdown)
+    local cd = tonumber(stateCooldown)
+    local ld = tonumber(stateLockdown)
+    if cd or ld then
+        return math.max(cd or 0, ld or 0)
+    end
+
+    if C_PetBattles.GetAbilityCooldown then
+        local remaining = C_PetBattles.GetAbilityCooldown(owner, petIndex, abilityIndex)
+        return tonumber(remaining) or 0
+    end
+
+    return 0
+end
+
+function PetBattleUI:FillAbilityCooldown(button, owner, petIndex, abilityIndex)
+    local isUsable, stateCooldown, stateLockdown = C_PetBattles.GetAbilityState(owner, petIndex, abilityIndex)
+    local usable = isUsable and true or false
+    local cooldown = ResolveCooldown(owner, petIndex, abilityIndex, stateCooldown, stateLockdown)
+
+    button.cooldown:Hide()
+    if usable and cooldown <= 0 then
+        button.icon:SetDesaturated(false)
+        button.icon:SetVertexColor(1, 1, 1)
+        return
+    end
+
+    button.icon:SetDesaturated(true)
+    button.icon:SetVertexColor(0.45, 0.45, 0.45)
+    if cooldown > 0 then
+        button.cooldown:SetText(cooldown)
+        button.cooldown:Show()
+    end
+end
+
+function PetBattleUI:GetEnemyAbilityCandidates(enemyPetIndex, abilityIndex)
+    local candidates = {}
+    local abilityID = C_PetBattles.GetAbilityInfo(ENEMY_OWNER, enemyPetIndex, abilityIndex)
+    if abilityID then
+        table.insert(candidates, abilityID)
+        return candidates
+    end
+
+    local speciesID = C_PetBattles.GetPetSpeciesID(ENEMY_OWNER, enemyPetIndex)
+    local level = C_PetBattles.GetLevel(ENEMY_OWNER, enemyPetIndex)
+    if not speciesID or not level or not C_PetJournal or not C_PetJournal.GetPetAbilityList then
+        return candidates
+    end
+
+    ClearArray(abilityListBuffer)
+    ClearArray(abilityLevelBuffer)
+    C_PetJournal.GetPetAbilityList(speciesID, abilityListBuffer, abilityLevelBuffer)
+
+    for listOffset = 0, 3, 3 do
+        local listIndex = abilityIndex + listOffset
+        local candidateID = abilityListBuffer[listIndex]
+        local candidateLevel = abilityLevelBuffer[listIndex]
+        if candidateID and candidateLevel and candidateLevel <= level then
+            table.insert(candidates, candidateID)
+        end
+    end
+
+    return candidates
+end
+
+function PetBattleUI:UpdateEnemyAbilityFrame(snapshot)
+    if not self.enemyAbilityFrame then
+        return
+    end
+
+    local enemyActivePet = snapshot and snapshot.active and snapshot.active.enemyIndex
+    if not enemyActivePet then
+        self.enemyAbilityFrame:Hide()
+        return
+    end
+
+    self.enemyAbilityFrame:Show()
+
+    for abilityIndex = 1, PET_SLOTS do
+        local topButton = self.enemyAbilityFrame.buttons[abilityIndex]
+        local bottomButton = self.enemyAbilityFrame.buttons[abilityIndex + 3]
+        local candidates = self:GetEnemyAbilityCandidates(enemyActivePet, abilityIndex)
+
+        self:FillAbilityButton(topButton, candidates[1])
+
+        if #candidates > 1 then
+            self:SetAbilityButtonHalfHeight(topButton, true)
+            topButton.cooldown:Hide()
+            self:FillAbilityButton(bottomButton, candidates[2])
+            bottomButton:Show()
+        else
+            self:SetAbilityButtonHalfHeight(topButton, false)
+            self:FillAbilityCooldown(topButton, ENEMY_OWNER, enemyActivePet, abilityIndex)
+            bottomButton:Hide()
+        end
+    end
 end
 
 function PetBattleUI:UpdateParty(frame, team)
@@ -179,6 +463,7 @@ function PetBattleUI:Refresh()
     local snapshot = Core:BuildBattleSnapshot()
     self:UpdateParty(self.playerFrame, snapshot.player)
     self:UpdateParty(self.enemyFrame, snapshot.enemy)
+    self:UpdateEnemyAbilityFrame(snapshot)
 end
 
 function PetBattleUI:ApplyVisibility()
@@ -188,10 +473,16 @@ function PetBattleUI:ApplyVisibility()
     if shouldShow then
         self.playerFrame:Show()
         self.enemyFrame:Show()
+        if self.enemyAbilityFrame then
+            self.enemyAbilityFrame:Show()
+        end
         self:Refresh()
     else
         self.playerFrame:Hide()
         self.enemyFrame:Hide()
+        if self.enemyAbilityFrame then
+            self.enemyAbilityFrame:Hide()
+        end
     end
 end
 
@@ -222,5 +513,9 @@ function PetBattleUI:OnBattleEnd()
 
     if self.enemyFrame then
         self.enemyFrame:Hide()
+    end
+
+    if self.enemyAbilityFrame then
+        self.enemyAbilityFrame:Hide()
     end
 end
