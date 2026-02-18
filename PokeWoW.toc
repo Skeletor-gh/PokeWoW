@@ -9,5 +9,6 @@
 ## SavedVariables: PokeWoWDB
 
 PokeWoW.lua
+PetBattleData.lua
 MusicTracks.lua
 Options.lua
