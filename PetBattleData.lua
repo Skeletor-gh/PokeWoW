@@ -3,9 +3,32 @@ local _, ns = ...
 local PetBattleData = {}
 ns.PetBattleData = PetBattleData
 
+local function ResolveOwnerToken(...)
+    for index = 1, select("#", ...) do
+        local candidate = select(index, ...)
+        if type(candidate) == "number" then
+            return candidate
+        end
+    end
+
+    return nil
+end
+
 local OWNER_MAP = {
-    player = LE_BATTLE_PET_ALLY,
-    enemy = LE_BATTLE_PET_ENEMY,
+    -- Client builds differ in where these constants are exposed.
+    -- Fall back to the documented numeric owner IDs used by C_PetBattles.
+    player = ResolveOwnerToken(
+        LE_BATTLE_PET_ALLY,
+        _G and _G.LE_BATTLE_PET_ALLY,
+        Enum and Enum.BattlePetOwner and Enum.BattlePetOwner.Ally,
+        1
+    ),
+    enemy = ResolveOwnerToken(
+        LE_BATTLE_PET_ENEMY,
+        _G and _G.LE_BATTLE_PET_ENEMY,
+        Enum and Enum.BattlePetOwner and Enum.BattlePetOwner.Enemy,
+        2
+    ),
 }
 
 local PET_SLOTS = 3
