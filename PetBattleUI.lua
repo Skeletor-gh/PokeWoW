@@ -14,7 +14,7 @@ end
 
 local function CreatePetSubframe(parent, ownerLabel, petIndex)
     local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    frame:SetSize(240, 64)
+    frame:SetSize(240, 88)
     frame:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -51,12 +51,25 @@ local function CreatePetSubframe(parent, ownerLabel, petIndex)
     meta:SetText("--")
     frame.meta = meta
 
+    frame.abilityIcons = {}
+    for abilityIndex = 1, PET_SLOTS do
+        local abilityIcon = frame:CreateTexture(nil, "ARTWORK")
+        abilityIcon:SetSize(18, 18)
+        if abilityIndex == 1 then
+            abilityIcon:SetPoint("TOPLEFT", meta, "BOTTOMLEFT", 0, -4)
+        else
+            abilityIcon:SetPoint("LEFT", frame.abilityIcons[abilityIndex - 1], "RIGHT", 6, 0)
+        end
+        abilityIcon:SetTexture(134400)
+        frame.abilityIcons[abilityIndex] = abilityIcon
+    end
+
     return frame
 end
 
 local function CreatePartyFrame(anchorPoint, relativePoint, x, y, titleText)
     local frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-    frame:SetSize(270, 255)
+    frame:SetSize(270, 326)
     frame:SetPoint(anchorPoint, UIParent, relativePoint, x, y)
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -122,11 +135,36 @@ function PetBattleUI:UpdateParty(frame, team)
                 name = "|cff00ff00▶ " .. name .. "|r"
             end
 
-            petFrame.name:SetText(string.format("%s (Lvl %s)", name, tostring(pet.level or "?")))
+            local familyLabel = pet.petTypeLabel or "Unknown"
+            petFrame.name:SetText(string.format("%s [%s]", name, familyLabel))
             petFrame.health:SetText("Health: " .. FormatHealthText(pet.health, pet.maxHealth))
-            petFrame.meta:SetText(string.format("%s | Speed %s", tostring(pet.petTypeLabel or "Unknown"), tostring(pet.speed or "?")))
+
+            if pet.level or pet.speed then
+                petFrame.meta:SetText(string.format("Lvl %s | Speed %s", tostring(pet.level or "?"), tostring(pet.speed or "?")))
+            else
+                petFrame.meta:SetText("--")
+            end
+
+            for abilityIndex = 1, PET_SLOTS do
+                local ability = pet.abilities and pet.abilities[abilityIndex]
+                local icon = petFrame.abilityIcons[abilityIndex]
+                icon:SetTexture((ability and ability.icon) or 134400)
+                icon:SetDesaturated(not (ability and ability.name))
+                icon:Show()
+            end
         else
-            petFrame:Hide()
+            petFrame:Show()
+            petFrame.icon:SetTexture(134400)
+            petFrame.name:SetText(string.format("%s Pet %d [Unknown]", frame == self.playerFrame and "Player" or "Enemy", i))
+            petFrame.health:SetText("Health: --")
+            petFrame.meta:SetText("--")
+
+            for abilityIndex = 1, PET_SLOTS do
+                local icon = petFrame.abilityIcons[abilityIndex]
+                icon:SetTexture(134400)
+                icon:SetDesaturated(true)
+                icon:Show()
+            end
         end
     end
 end

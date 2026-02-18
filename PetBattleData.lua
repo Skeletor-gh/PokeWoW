@@ -8,6 +8,8 @@ local OWNER_MAP = {
     enemy = LE_BATTLE_PET_ENEMY,
 }
 
+local PET_SLOTS = 3
+
 local PET_TYPE_LABELS = {
     [1] = "Humanoid",
     [2] = "Dragonkin",
@@ -70,6 +72,22 @@ local function BuildAbility(owner, petIndex, abilityIndex)
     }
 end
 
+local function PetExists(owner, petIndex)
+    if NumberOrNil(C_PetBattles.GetPetSpeciesID(owner, petIndex)) then
+        return true
+    end
+
+    if C_PetBattles.GetName(owner, petIndex) then
+        return true
+    end
+
+    if C_PetBattles.GetIcon(owner, petIndex) then
+        return true
+    end
+
+    return false
+end
+
 local function BuildPet(owner, petIndex, isActive)
     local petType = NumberOrNil(C_PetBattles.GetPetType(owner, petIndex))
     local health = NumberOrNil(C_PetBattles.GetHealth(owner, petIndex))
@@ -80,6 +98,7 @@ local function BuildPet(owner, petIndex, isActive)
 
     local pet = {
         index = petIndex,
+        exists = PetExists(owner, petIndex),
         isActive = Bool(isActive),
         name = C_PetBattles.GetName(owner, petIndex),
         species = speciesID,
@@ -104,13 +123,18 @@ end
 
 local function BuildTeamSnapshot(owner)
     local activePetIndex = C_PetBattles.GetActivePet(owner)
+    local totalSlots = NumberOrNil(C_PetBattles.GetNumPets(owner)) or PET_SLOTS
+    if totalSlots < PET_SLOTS then
+        totalSlots = PET_SLOTS
+    end
+
     local team = {
         owner = owner,
         activePetIndex = NumberOrNil(activePetIndex),
         pets = {},
     }
 
-    for petIndex = 1, C_PetBattles.GetNumPets(owner) do
+    for petIndex = 1, totalSlots do
         team.pets[petIndex] = BuildPet(owner, petIndex, petIndex == activePetIndex)
     end
 
