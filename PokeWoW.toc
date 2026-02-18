@@ -10,5 +10,6 @@
 
 PokeWoW.lua
 PetBattleData.lua
+PetBattleUI.lua
 MusicTracks.lua
 Options.lua
