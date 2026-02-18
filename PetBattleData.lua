@@ -236,7 +236,17 @@ local function ResolveOwnerPair()
 end
 
 function PetBattleData.BuildBattleSnapshot()
-    if not C_PetBattles or not C_PetBattles.IsInBattle or not C_PetBattles.IsInBattle() then
+    if not C_PetBattles then
+        return {
+            player = { pets = {} },
+            enemy = { pets = {} },
+            active = {},
+        }
+    end
+
+    -- Not every client build exposes C_PetBattles.IsInBattle().
+    -- When unavailable, continue and infer battle state from pet slots.
+    if C_PetBattles.IsInBattle and not C_PetBattles.IsInBattle() then
         return {
             player = { pets = {} },
             enemy = { pets = {} },
