@@ -308,6 +308,19 @@ function Core:SetCustomMusicEnabled(enabled)
     end
 end
 
+
+function Core:BuildBattleSnapshot()
+    if ns.BuildBattleSnapshot then
+        return ns.BuildBattleSnapshot()
+    end
+
+    return {
+        player = { pets = {} },
+        enemy = { pets = {} },
+        active = {},
+    }
+end
+
 function Core:GetVersion()
     if C_AddOns and C_AddOns.GetAddOnMetadata then
         return C_AddOns.GetAddOnMetadata(addonName, "Version") or "0.0.0"
