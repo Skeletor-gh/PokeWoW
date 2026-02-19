@@ -92,6 +92,30 @@ function Core:GetTrackByIndex(index)
     return track, length
 end
 
+function Core:GetSortedTrackIndices()
+    local tracks = self:GetTracks()
+    local indices = {}
+
+    for index = 1, #tracks do
+        indices[#indices + 1] = index
+    end
+
+    table.sort(indices, function(a, b)
+        local trackA = tracks[a] or {}
+        local trackB = tracks[b] or {}
+        local keyA = string.lower(trackA.name or trackA.path or "")
+        local keyB = string.lower(trackB.name or trackB.path or "")
+
+        if keyA == keyB then
+            return a < b
+        end
+
+        return keyA < keyB
+    end)
+
+    return indices
+end
+
 function Core:MuteDefaultPetBattleMusic(mute)
     for _, fileID in ipairs(self.defaultPetBattleMusicFileIDs) do
         if mute then
@@ -203,7 +227,8 @@ function Core:ScheduleNextPlay(delay)
         self.musicTimer:Cancel()
     end
 
-    self.musicTimer = C_Timer.NewTimer(delay, function()
+    local safeDelay = math.max(0.1, (tonumber(delay) or 0) + 0.1)
+    self.musicTimer = C_Timer.NewTimer(safeDelay, function()
         self:PlayMusicCycle()
     end)
 end
@@ -230,8 +255,10 @@ function Core:PlayMusicCycle()
     elseif mode == "RANDOM" then
         index = math.random(1, #tracks)
     else
-        index = math.max(1, math.min(self.db.music.sequentialIndex or 1, #tracks))
-        self.db.music.sequentialIndex = (index % #tracks) + 1
+        local orderedIndices = self:GetSortedTrackIndices()
+        local orderPosition = math.max(1, math.min(self.db.music.sequentialIndex or 1, #orderedIndices))
+        index = orderedIndices[orderPosition]
+        self.db.music.sequentialIndex = (orderPosition % #orderedIndices) + 1
     end
 
     local track, length = self:GetTrackByIndex(index)
