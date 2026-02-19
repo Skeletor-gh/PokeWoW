@@ -28,20 +28,5 @@ A World of Warcraft addon focused on QoL and UX for Pet Battles. Gotta catch'em 
    - Add a `name`, file `path`, and `length` (seconds) for each track.
    - Keep all music files inside `PokeWoW/Tracks/`.
 
-## Included Soundtracks (Default Playlist)
-- Pokemon
-- Mortal Kombat Menu
-- Street Fighter Guile
-- Street Fighter Ken
-- Street Fighter II Theme
-- Street Fighter Ryu
-
-## More Soundtracks You Can Add
-Add your own tracks to `Tracks/`, then register them in `MusicTracks.lua`. Example additions:
-- Pokemon Battle Theme (Gen 1)
-- Pokemon Gym Leader Theme
-- Pokemon Champion Theme
-- Final Fantasy Victory Fanfare
-- Mega Man X Intro Stage
-- Sonic Green Hill Zone
-- Zelda Overworld Theme
+## Included Soundtracks
+PokeWoW comes with a set of pre-built soundtracks. 
