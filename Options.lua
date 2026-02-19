@@ -196,6 +196,15 @@ local function BuildMusicPanel(parentCategory)
         UIDropDownMenu_SetText(trackDropdown, track and track.name or "No tracks configured")
     end
 
+    local function RefreshTrackDropdownEnabledState()
+        local isSingleLoop = (Core.db.music.mode == "SINGLE_LOOP")
+        UIDropDownMenu_EnableDropDown(trackDropdown)
+
+        if not isSingleLoop then
+            UIDropDownMenu_DisableDropDown(trackDropdown)
+        end
+    end
+
     UIDropDownMenu_Initialize(modeDropdown, function(self, _, _)
         for _, item in ipairs(modeItems) do
             local info = UIDropDownMenu_CreateInfo()
@@ -206,6 +215,7 @@ local function BuildMusicPanel(parentCategory)
                 Core.db.music.mode = item.value
                 UIDropDownMenu_SetSelectedValue(modeDropdown, item.value)
                 UIDropDownMenu_SetText(modeDropdown, item.text)
+                RefreshTrackDropdownEnabledState()
                 Core:RefreshMusic()
             end
             UIDropDownMenu_AddButton(info)
@@ -218,6 +228,7 @@ local function BuildMusicPanel(parentCategory)
 
     UIDropDownMenu_SetWidth(trackDropdown, 260)
     RefreshTrackDropdown()
+    RefreshTrackDropdownEnabledState()
 
     panel.controls = { modeDropdown, trackDropdown }
 
