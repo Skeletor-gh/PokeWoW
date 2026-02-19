@@ -38,6 +38,8 @@ local OWNER_PAIR_CANDIDATES = {
     { player = 0, enemy = 1 },
 }
 
+local OWNER_VALUE_CANDIDATES = { 0, 1, 2 }
+
 local PET_TYPE_LABELS = {
     [1] = "Humanoid",
     [2] = "Dragonkin",
@@ -213,26 +215,84 @@ local function TeamHasData(team)
     return false
 end
 
-local function ResolveOwnerPair()
-    local candidates = {
-        { player = OWNER_MAP.player, enemy = OWNER_MAP.enemy },
-    }
-
-    for _, pair in ipairs(OWNER_PAIR_CANDIDATES) do
-        table.insert(candidates, pair)
+local function ScoreTeam(team)
+    if not team or not team.pets then
+        return 0
     end
 
-    for _, pair in ipairs(candidates) do
-        if pair.player ~= nil and pair.enemy ~= nil and pair.player ~= pair.enemy then
-            local playerTeam = BuildTeamSnapshot(pair.player)
-            local enemyTeam = BuildTeamSnapshot(pair.enemy)
-            if TeamHasData(playerTeam) or TeamHasData(enemyTeam) then
-                return pair, playerTeam, enemyTeam
+    local score = 0
+    if team.activePetIndex and team.activePetIndex >= 1 then
+        score = score + 3
+    end
+
+    for _, pet in ipairs(team.pets) do
+        if pet and pet.exists then
+            score = score + 2
+
+            if pet.health and pet.maxHealth then
+                score = score + 1
+            end
+
+            if pet.name then
+                score = score + 1
             end
         end
     end
 
-    return { player = OWNER_MAP.player, enemy = OWNER_MAP.enemy }, BuildTeamSnapshot(OWNER_MAP.player), BuildTeamSnapshot(OWNER_MAP.enemy)
+    return score
+end
+
+local function ResolveOwnerPair()
+    local candidates = {}
+
+    local function AddCandidate(playerOwner, enemyOwner)
+        if playerOwner == nil or enemyOwner == nil or playerOwner == enemyOwner then
+            return
+        end
+
+        for _, existing in ipairs(candidates) do
+            if existing.player == playerOwner and existing.enemy == enemyOwner then
+                return
+            end
+        end
+
+        table.insert(candidates, { player = playerOwner, enemy = enemyOwner })
+    end
+
+    AddCandidate(OWNER_MAP.player, OWNER_MAP.enemy)
+
+    for _, pair in ipairs(OWNER_PAIR_CANDIDATES) do
+        AddCandidate(pair.player, pair.enemy)
+    end
+
+    for _, playerOwner in ipairs(OWNER_VALUE_CANDIDATES) do
+        for _, enemyOwner in ipairs(OWNER_VALUE_CANDIDATES) do
+            AddCandidate(playerOwner, enemyOwner)
+        end
+    end
+
+    local bestPair, bestPlayerTeam, bestEnemyTeam
+    local bestScore = -1
+
+    for _, pair in ipairs(candidates) do
+        local playerTeam = BuildTeamSnapshot(pair.player)
+        local enemyTeam = BuildTeamSnapshot(pair.enemy)
+        local score = ScoreTeam(playerTeam) + ScoreTeam(enemyTeam)
+
+        if score > bestScore then
+            bestScore = score
+            bestPair = pair
+            bestPlayerTeam = playerTeam
+            bestEnemyTeam = enemyTeam
+        end
+    end
+
+    if bestPair and (TeamHasData(bestPlayerTeam) or TeamHasData(bestEnemyTeam)) then
+        return bestPair, bestPlayerTeam, bestEnemyTeam
+    end
+
+    local fallbackPair = { player = OWNER_MAP.player, enemy = OWNER_MAP.enemy }
+    return fallbackPair, BuildTeamSnapshot(fallbackPair.player), BuildTeamSnapshot(fallbackPair.enemy)
 end
 
 function PetBattleData.BuildBattleSnapshot()
