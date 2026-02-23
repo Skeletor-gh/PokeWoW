@@ -12,6 +12,12 @@ end
 if Core.defaults.battleFrames.layout == nil then
     Core.defaults.battleFrames.layout = "OVERLAP"
 end
+if Core.defaults.battleFrames.sideAbilityPadding == nil then
+    Core.defaults.battleFrames.sideAbilityPadding = 2
+end
+if Core.defaults.battleFrames.sideGroupPadding == nil then
+    Core.defaults.battleFrames.sideGroupPadding = 7
+end
 
 local BATTLE_FRAME_LAYOUT = {
     OVERLAP = "OVERLAP",
@@ -21,6 +27,16 @@ local BATTLE_FRAME_LAYOUT = {
 local function ClampButtonScale(scale)
     local numericScale = tonumber(scale) or 1
     return math.max(0.5, math.min(2, numericScale))
+end
+
+local function ClampSideAbilityPadding(padding)
+    local numericPadding = tonumber(padding) or 2
+    return math.max(0, math.min(20, numericPadding))
+end
+
+local function ClampSideGroupPadding(padding)
+    local numericPadding = tonumber(padding) or 7
+    return math.max(0, math.min(40, numericPadding))
 end
 
 function Core:IsBattleFramesEnabled()
@@ -74,6 +90,36 @@ function Core:SetBattleFramesLayoutMode(mode)
     self:ApplyBattleFramesLayout()
 end
 
+function Core:GetBattleFramesSideAbilityPadding()
+    local padding = self.db and self.db.battleFrames and self.db.battleFrames.sideAbilityPadding
+    return ClampSideAbilityPadding(padding)
+end
+
+function Core:SetBattleFramesSideAbilityPadding(padding)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.sideAbilityPadding = ClampSideAbilityPadding(padding)
+    self:ApplyBattleFramesLayout()
+end
+
+function Core:GetBattleFramesSideGroupPadding()
+    local padding = self.db and self.db.battleFrames and self.db.battleFrames.sideGroupPadding
+    return ClampSideGroupPadding(padding)
+end
+
+function Core:SetBattleFramesSideGroupPadding(padding)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.sideGroupPadding = ClampSideGroupPadding(padding)
+    self:ApplyBattleFramesLayout()
+end
+
 function Core:ApplyBattleFramesLayout()
     local frame = DeePetBattleFrame
     if not frame then
@@ -99,7 +145,8 @@ function Core:ApplyBattleFramesLayout()
         end
 
         local buttonWidth = sampleButton:GetWidth() > 0 and sampleButton:GetWidth() or 56
-        local baseSpacing = buttonWidth + 2
+        local sidePadding = self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES and self:GetBattleFramesSideAbilityPadding() or 2
+        local baseSpacing = buttonWidth + sidePadding
         local scaledSpacing = baseSpacing * scale
 
         for index, button in ipairs(buttons) do
@@ -126,13 +173,14 @@ function Core:ApplyBattleFramesLayout()
     enemy3:ClearAllPoints()
 
     if self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES then
+        local groupPadding = self:GetBattleFramesSideGroupPadding()
         ally1:SetPoint("LEFT", UIParent, "LEFT", 250, 0)
-        ally2:SetPoint("RIGHT", ally1, "LEFT", -7, 0)
-        ally3:SetPoint("RIGHT", ally2, "LEFT", -7, 0)
+        ally2:SetPoint("TOP", ally1, "BOTTOM", 0, -groupPadding)
+        ally3:SetPoint("TOP", ally2, "BOTTOM", 0, -groupPadding)
 
         enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250, 0)
-        enemy2:SetPoint("LEFT", enemy1, "RIGHT", 7, 0)
-        enemy3:SetPoint("LEFT", enemy2, "RIGHT", 7, 0)
+        enemy2:SetPoint("TOP", enemy1, "BOTTOM", 0, -groupPadding)
+        enemy3:SetPoint("TOP", enemy2, "BOTTOM", 0, -groupPadding)
     else
         ally1:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30, 2)
         ally2:SetPoint("RIGHT", PetBattleFrame.Ally2, "LEFT", -7, 0)
