@@ -312,6 +312,64 @@ local function BuildBattleFramesPanel(parentCategory)
     local positioningDropdown = CreateFrame("Frame", addonName .. "BattleFramesPositioningDropdown", panel, "UIDropDownMenuTemplate")
     positioningDropdown:SetPoint("TOPLEFT", 0, -235)
 
+    local sideAbilityPaddingLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    sideAbilityPaddingLabel:SetPoint("TOPLEFT", 16, -300)
+    sideAbilityPaddingLabel:SetText("Side Mode: Ability Horizontal Padding")
+
+    local sideAbilityPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideAbilityPaddingSlider", panel, "OptionsSliderTemplate")
+    sideAbilityPaddingSlider:SetPoint("TOPLEFT", 20, -325)
+    sideAbilityPaddingSlider:SetWidth(260)
+    sideAbilityPaddingSlider:SetMinMaxValues(0, 20)
+    sideAbilityPaddingSlider:SetValueStep(1)
+    sideAbilityPaddingSlider:SetObeyStepOnDrag(true)
+    sideAbilityPaddingSlider.Low:SetText("0")
+    sideAbilityPaddingSlider.High:SetText("20")
+
+    local sideAbilityPaddingValueText = sideAbilityPaddingSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    sideAbilityPaddingValueText:SetPoint("TOP", sideAbilityPaddingSlider, "BOTTOM", 0, -4)
+
+    local function RefreshSideAbilityPaddingText()
+        sideAbilityPaddingValueText:SetText(string.format("Current: %d", Core:GetBattleFramesSideAbilityPadding()))
+    end
+
+    sideAbilityPaddingSlider:SetValue(Core:GetBattleFramesSideAbilityPadding())
+    RefreshSideAbilityPaddingText()
+
+    sideAbilityPaddingSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor(value + 0.5)
+        Core:SetBattleFramesSideAbilityPadding(snapped)
+        RefreshSideAbilityPaddingText()
+    end)
+
+    local sideGroupPaddingLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    sideGroupPaddingLabel:SetPoint("TOPLEFT", 16, -390)
+    sideGroupPaddingLabel:SetText("Side Mode: Group Vertical Padding")
+
+    local sideGroupPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideGroupPaddingSlider", panel, "OptionsSliderTemplate")
+    sideGroupPaddingSlider:SetPoint("TOPLEFT", 20, -415)
+    sideGroupPaddingSlider:SetWidth(260)
+    sideGroupPaddingSlider:SetMinMaxValues(0, 40)
+    sideGroupPaddingSlider:SetValueStep(1)
+    sideGroupPaddingSlider:SetObeyStepOnDrag(true)
+    sideGroupPaddingSlider.Low:SetText("0")
+    sideGroupPaddingSlider.High:SetText("40")
+
+    local sideGroupPaddingValueText = sideGroupPaddingSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    sideGroupPaddingValueText:SetPoint("TOP", sideGroupPaddingSlider, "BOTTOM", 0, -4)
+
+    local function RefreshSideGroupPaddingText()
+        sideGroupPaddingValueText:SetText(string.format("Current: %d", Core:GetBattleFramesSideGroupPadding()))
+    end
+
+    sideGroupPaddingSlider:SetValue(Core:GetBattleFramesSideGroupPadding())
+    RefreshSideGroupPaddingText()
+
+    sideGroupPaddingSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor(value + 0.5)
+        Core:SetBattleFramesSideGroupPadding(snapped)
+        RefreshSideGroupPaddingText()
+    end)
+
     local layoutItems = {
         { text = "Overlapped with top bar", value = "OVERLAP" },
         { text = "Split to sides", value = "SIDES" },
@@ -346,7 +404,7 @@ local function BuildBattleFramesPanel(parentCategory)
     UIDropDownMenu_SetSelectedValue(positioningDropdown, currentLayout)
     UIDropDownMenu_SetText(positioningDropdown, GetLayoutText(currentLayout))
 
-    panel.controls = { scaleSlider, positioningDropdown }
+    panel.controls = { scaleSlider, positioningDropdown, sideAbilityPaddingSlider, sideGroupPaddingSlider }
 
     CreateFooter(panel)
     local category = AddCategory(panel, "BattleFrames", parentCategory)

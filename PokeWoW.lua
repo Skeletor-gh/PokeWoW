@@ -17,6 +17,8 @@ Core.defaults = {
         enabled = true,
         buttonScale = 1,
         layout = "OVERLAP",
+        sideAbilityPadding = 2,
+        sideGroupPadding = 7,
     },
 }
 
