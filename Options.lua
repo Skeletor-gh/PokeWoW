@@ -21,6 +21,22 @@ local function SetControlEnabled(control, enabled)
         end
         control.Text:SetTextColor(r, g, b)
     end
+
+    if control.Low then
+        local r, g, b = 1, 1, 1
+        if not enabled then
+            r, g, b = 0.5, 0.5, 0.5
+        end
+        control.Low:SetTextColor(r, g, b)
+    end
+
+    if control.High then
+        local r, g, b = 1, 1, 1
+        if not enabled then
+            r, g, b = 0.5, 0.5, 0.5
+        end
+        control.High:SetTextColor(r, g, b)
+    end
 end
 
 local function SetPanelEnabled(panel, enabled)
@@ -108,7 +124,12 @@ local function BuildWelcomePanel(parentCategory)
     customMusicCheckbox.Text:SetText("Enable Custom Pet Battle Music")
     customMusicCheckbox:SetChecked(Core.db.customMusicEnabled)
 
-    panel.controls = { addonEnabledCheckbox, customMusicCheckbox }
+    local battleFramesCheckbox = CreateFrame("CheckButton", addonName .. "BattleFramesEnabledCheckbox", panel, "UICheckButtonTemplate")
+    battleFramesCheckbox:SetPoint("TOPLEFT", 16, -190)
+    battleFramesCheckbox.Text:SetText("Enable BattleFrames")
+    battleFramesCheckbox:SetChecked(Core.db.battleFrames and Core.db.battleFrames.enabled)
+
+    panel.controls = { addonEnabledCheckbox, customMusicCheckbox, battleFramesCheckbox }
 
     addonEnabledCheckbox:SetScript("OnClick", function(self)
         local checked = self:GetChecked()
@@ -117,6 +138,7 @@ local function BuildWelcomePanel(parentCategory)
         Core:PrintStatus("Addon " .. (checked and "enabled." or "disabled."))
 
         SetControlEnabled(customMusicCheckbox, checked)
+        SetControlEnabled(battleFramesCheckbox, checked)
         ns.RefreshOptionsState()
     end)
 
@@ -125,6 +147,14 @@ local function BuildWelcomePanel(parentCategory)
         PlayCheckboxSound(checked)
         Core:SetCustomMusicEnabled(checked)
         Core:PrintStatus("Custom pet battle music " .. (checked and "enabled." or "disabled."))
+        ns.RefreshOptionsState()
+    end)
+
+    battleFramesCheckbox:SetScript("OnClick", function(self)
+        local checked = self:GetChecked()
+        PlayCheckboxSound(checked)
+        Core:SetBattleFramesEnabled(checked)
+        Core:PrintStatus("BattleFrames " .. (checked and "enabled." or "disabled."))
         ns.RefreshOptionsState()
     end)
 
@@ -244,21 +274,79 @@ local function BuildBattleFramesPanel(parentCategory)
     panel.controls = {}
 
     CreateTitle(panel, "BattleFrames")
-    CreateBody(panel, "Enhanced pet battle frame logic for tracking abilities, cooldown state, and aura context on ability buttons.")
+    CreateBody(panel, "Configure the top pet battle ability buttons.")
 
-    local battleFramesCheckbox = CreateFrame("CheckButton", addonName .. "BattleFramesEnabledCheckbox", panel, "UICheckButtonTemplate")
-    battleFramesCheckbox:SetPoint("TOPLEFT", 16, -120)
-    battleFramesCheckbox.Text:SetText("Enable BattleFrames")
-    battleFramesCheckbox:SetChecked(Core.db.battleFrames and Core.db.battleFrames.enabled)
+    local scaleLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    scaleLabel:SetPoint("TOPLEFT", 16, -120)
+    scaleLabel:SetText("Button Scale")
 
-    battleFramesCheckbox:SetScript("OnClick", function(self)
-        local checked = self:GetChecked()
-        PlayCheckboxSound(checked)
-        Core:SetBattleFramesEnabled(checked)
-        Core:PrintStatus("BattleFrames " .. (checked and "enabled." or "disabled."))
+    local scaleSlider = CreateFrame("Slider", addonName .. "BattleFramesScaleSlider", panel, "OptionsSliderTemplate")
+    scaleSlider:SetPoint("TOPLEFT", 20, -145)
+    scaleSlider:SetWidth(260)
+    scaleSlider:SetMinMaxValues(0.5, 2)
+    scaleSlider:SetValueStep(0.05)
+    scaleSlider:SetObeyStepOnDrag(true)
+    scaleSlider.Low:SetText("0.5")
+    scaleSlider.High:SetText("2.0")
+
+    local scaleValueText = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    scaleValueText:SetPoint("TOP", scaleSlider, "BOTTOM", 0, -4)
+
+    local function RefreshScaleText()
+        scaleValueText:SetText(string.format("Current: %.2f", Core:GetBattleFramesButtonScale()))
+    end
+
+    scaleSlider:SetValue(Core:GetBattleFramesButtonScale())
+    RefreshScaleText()
+
+    scaleSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor((value + 0.025) / 0.05) * 0.05
+        Core:SetBattleFramesButtonScale(snapped)
+        RefreshScaleText()
     end)
 
-    panel.controls = { battleFramesCheckbox }
+    local positioningLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    positioningLabel:SetPoint("TOPLEFT", 16, -220)
+    positioningLabel:SetText("Positioning")
+
+    local positioningDropdown = CreateFrame("Frame", addonName .. "BattleFramesPositioningDropdown", panel, "UIDropDownMenuTemplate")
+    positioningDropdown:SetPoint("TOPLEFT", 0, -235)
+
+    local layoutItems = {
+        { text = "Overlapped with top bar", value = "OVERLAP" },
+        { text = "Split to sides", value = "SIDES" },
+    }
+
+    local function GetLayoutText(value)
+        for _, item in ipairs(layoutItems) do
+            if item.value == value then
+                return item.text
+            end
+        end
+        return layoutItems[1].text
+    end
+
+    UIDropDownMenu_Initialize(positioningDropdown, function(self, _, _)
+        for _, item in ipairs(layoutItems) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = item.text
+            info.value = item.value
+            info.checked = (Core:GetBattleFramesLayoutMode() == item.value)
+            info.func = function()
+                Core:SetBattleFramesLayoutMode(item.value)
+                UIDropDownMenu_SetSelectedValue(positioningDropdown, item.value)
+                UIDropDownMenu_SetText(positioningDropdown, item.text)
+            end
+            UIDropDownMenu_AddButton(info)
+        end
+    end)
+
+    local currentLayout = Core:GetBattleFramesLayoutMode()
+    UIDropDownMenu_SetWidth(positioningDropdown, 240)
+    UIDropDownMenu_SetSelectedValue(positioningDropdown, currentLayout)
+    UIDropDownMenu_SetText(positioningDropdown, GetLayoutText(currentLayout))
+
+    panel.controls = { scaleSlider, positioningDropdown }
 
     CreateFooter(panel)
     local category = AddCategory(panel, "BattleFrames", parentCategory)
@@ -273,9 +361,14 @@ function ns.RefreshOptionsState()
 
     local addonEnabled = Core:IsAddonEnabled()
     local customMusicEnabled = Core.db.customMusicEnabled
+    local battleFramesEnabled = Core.db.battleFrames and Core.db.battleFrames.enabled
 
     if ns.rootPanel and ns.rootPanel.controls and ns.rootPanel.controls[2] then
         SetControlEnabled(ns.rootPanel.controls[2], addonEnabled)
+    end
+
+    if ns.rootPanel and ns.rootPanel.controls and ns.rootPanel.controls[3] then
+        SetControlEnabled(ns.rootPanel.controls[3], addonEnabled)
     end
 
     if ns.musicPanel then
@@ -283,7 +376,7 @@ function ns.RefreshOptionsState()
     end
 
     if ns.battleFramesPanel then
-        SetPanelEnabled(ns.battleFramesPanel, addonEnabled)
+        SetPanelEnabled(ns.battleFramesPanel, addonEnabled and battleFramesEnabled)
     end
 end
 
