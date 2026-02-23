@@ -13,6 +13,9 @@ Core.defaults = {
         sequentialIndex = 1,
         enabled = true,
     },
+    battleFrames = {
+        enabled = true,
+    },
 }
 
 Core.musicFadeDuration = 1.2
@@ -53,6 +56,16 @@ function Core:InitDB()
     for key, value in pairs(self.defaults.music) do
         if PokeWoWDB.music[key] == nil then
             PokeWoWDB.music[key] = deepcopy(value)
+        end
+    end
+
+    if type(PokeWoWDB.battleFrames) ~= "table" then
+        PokeWoWDB.battleFrames = deepcopy(self.defaults.battleFrames)
+    end
+
+    for key, value in pairs(self.defaults.battleFrames) do
+        if PokeWoWDB.battleFrames[key] == nil then
+            PokeWoWDB.battleFrames[key] = deepcopy(value)
         end
     end
 
