@@ -2,9 +2,26 @@ local addonName, ns = ...
 local Core = ns.Core
 
 Core.defaults = Core.defaults or {}
-Core.defaults.battleFrames = Core.defaults.battleFrames or {
-    enabled = true,
+Core.defaults.battleFrames = Core.defaults.battleFrames or {}
+if Core.defaults.battleFrames.enabled == nil then
+    Core.defaults.battleFrames.enabled = true
+end
+if Core.defaults.battleFrames.buttonScale == nil then
+    Core.defaults.battleFrames.buttonScale = 1
+end
+if Core.defaults.battleFrames.layout == nil then
+    Core.defaults.battleFrames.layout = "OVERLAP"
+end
+
+local BATTLE_FRAME_LAYOUT = {
+    OVERLAP = "OVERLAP",
+    SIDES = "SIDES",
 }
+
+local function ClampButtonScale(scale)
+    local numericScale = tonumber(scale) or 1
+    return math.max(0.5, math.min(2, numericScale))
+end
 
 function Core:IsBattleFramesEnabled()
     return self:IsAddonEnabled() and self.db and self.db.battleFrames and self.db.battleFrames.enabled
@@ -17,6 +34,96 @@ function Core:SetBattleFramesEnabled(enabled)
 
     self.db.battleFrames = self.db.battleFrames or {}
     self.db.battleFrames.enabled = not not enabled
+end
+
+function Core:GetBattleFramesButtonScale()
+    local scale = self.db and self.db.battleFrames and self.db.battleFrames.buttonScale
+    return ClampButtonScale(scale)
+end
+
+function Core:SetBattleFramesButtonScale(scale)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.buttonScale = ClampButtonScale(scale)
+    self:ApplyBattleFramesLayout()
+end
+
+function Core:GetBattleFramesLayoutMode()
+    local mode = self.db and self.db.battleFrames and self.db.battleFrames.layout
+    if mode == BATTLE_FRAME_LAYOUT.SIDES then
+        return BATTLE_FRAME_LAYOUT.SIDES
+    end
+    return BATTLE_FRAME_LAYOUT.OVERLAP
+end
+
+function Core:SetBattleFramesLayoutMode(mode)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    if mode == BATTLE_FRAME_LAYOUT.SIDES then
+        self.db.battleFrames.layout = BATTLE_FRAME_LAYOUT.SIDES
+    else
+        self.db.battleFrames.layout = BATTLE_FRAME_LAYOUT.OVERLAP
+    end
+
+    self:ApplyBattleFramesLayout()
+end
+
+function Core:ApplyBattleFramesLayout()
+    local frame = DeePetBattleFrame
+    if not frame then
+        return
+    end
+
+    local ally = frame.Ally1
+    local enemy = frame.Enemy1
+    if not ally or not enemy then
+        return
+    end
+
+    local scale = self:GetBattleFramesButtonScale()
+    local function ApplyGroupScale(group)
+        if not group then
+            return
+        end
+
+        local buttons = { group.Button1, group.Button2, group.Button3 }
+        local sampleButton = buttons[1]
+        if not sampleButton then
+            return
+        end
+
+        local buttonWidth = sampleButton:GetWidth() > 0 and sampleButton:GetWidth() or 56
+        local baseSpacing = buttonWidth + 2
+        local scaledSpacing = baseSpacing * scale
+
+        for index, button in ipairs(buttons) do
+            if button then
+                button:SetScale(scale)
+                button:ClearAllPoints()
+                button:SetPoint("CENTER", group, "CENTER", (index - 2) * scaledSpacing, 0)
+            end
+        end
+    end
+
+    ApplyGroupScale(ally.Abilities)
+    ApplyGroupScale(enemy.Abilities)
+
+    ally:ClearAllPoints()
+    enemy:ClearAllPoints()
+
+    if self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES then
+        ally:SetPoint("LEFT", UIParent, "LEFT", 250, 0)
+        enemy:SetPoint("RIGHT", UIParent, "RIGHT", -250, 0)
+    else
+        ally:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30, 2)
+        enemy:SetPoint("TOPRIGHT", PetBattleFrame.ActiveEnemy, "TOPLEFT", -30, 2)
+    end
 end
 
 -----------------------------
@@ -248,6 +355,9 @@ do
 
         populateTeams()
         lastPlayerAbilityID = nil  --clear ID of the ability last picked by the player
+        if Core and Core.ApplyBattleFramesLayout then
+            Core:ApplyBattleFramesLayout()
+        end
     end
 
     --whenever our main frame is hidden, a pet battle has ended: forget team rosters until the next battle
@@ -259,6 +369,9 @@ do
     --register events for the main frame
     DeePetBattleFrame_OnLoad = function(self)
         registerAllEvents(self, DeePetBattleFrame_EventHandlers)
+        if Core and Core.ApplyBattleFramesLayout then
+            Core:ApplyBattleFramesLayout()
+        end
     end
 
 end

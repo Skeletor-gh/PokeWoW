@@ -15,6 +15,8 @@ Core.defaults = {
     },
     battleFrames = {
         enabled = true,
+        buttonScale = 1,
+        layout = "OVERLAP",
     },
 }
 
