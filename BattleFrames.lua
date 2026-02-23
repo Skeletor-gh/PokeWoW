@@ -80,9 +80,9 @@ function Core:ApplyBattleFramesLayout()
         return
     end
 
-    local ally = frame.Ally1
-    local enemy = frame.Enemy1
-    if not ally or not enemy then
+    local ally1, ally2, ally3 = frame.Ally1, frame.Ally2, frame.Ally3
+    local enemy1, enemy2, enemy3 = frame.Enemy1, frame.Enemy2, frame.Enemy3
+    if not ally1 or not ally2 or not ally3 or not enemy1 or not enemy2 or not enemy3 then
         return
     end
 
@@ -111,18 +111,36 @@ function Core:ApplyBattleFramesLayout()
         end
     end
 
-    ApplyGroupScale(ally.Abilities)
-    ApplyGroupScale(enemy.Abilities)
+    ApplyGroupScale(ally1.Abilities)
+    ApplyGroupScale(ally2.Abilities)
+    ApplyGroupScale(ally3.Abilities)
+    ApplyGroupScale(enemy1.Abilities)
+    ApplyGroupScale(enemy2.Abilities)
+    ApplyGroupScale(enemy3.Abilities)
 
-    ally:ClearAllPoints()
-    enemy:ClearAllPoints()
+    ally1:ClearAllPoints()
+    ally2:ClearAllPoints()
+    ally3:ClearAllPoints()
+    enemy1:ClearAllPoints()
+    enemy2:ClearAllPoints()
+    enemy3:ClearAllPoints()
 
     if self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES then
-        ally:SetPoint("LEFT", UIParent, "LEFT", 250, 0)
-        enemy:SetPoint("RIGHT", UIParent, "RIGHT", -250, 0)
+        ally1:SetPoint("LEFT", UIParent, "LEFT", 250, 0)
+        ally2:SetPoint("RIGHT", ally1, "LEFT", -7, 0)
+        ally3:SetPoint("RIGHT", ally2, "LEFT", -7, 0)
+
+        enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250, 0)
+        enemy2:SetPoint("LEFT", enemy1, "RIGHT", 7, 0)
+        enemy3:SetPoint("LEFT", enemy2, "RIGHT", 7, 0)
     else
-        ally:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30, 2)
-        enemy:SetPoint("TOPRIGHT", PetBattleFrame.ActiveEnemy, "TOPLEFT", -30, 2)
+        ally1:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30, 2)
+        ally2:SetPoint("RIGHT", PetBattleFrame.Ally2, "LEFT", -7, 0)
+        ally3:SetPoint("RIGHT", PetBattleFrame.Ally3, "LEFT", -7, 0)
+
+        enemy1:SetPoint("TOPRIGHT", PetBattleFrame.ActiveEnemy, "TOPLEFT", -30, 2)
+        enemy2:SetPoint("LEFT", PetBattleFrame.Enemy2, "RIGHT", 7, 0)
+        enemy3:SetPoint("LEFT", PetBattleFrame.Enemy3, "RIGHT", 7, 0)
     end
 end
 
