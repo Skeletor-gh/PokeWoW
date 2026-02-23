@@ -10,4 +10,5 @@
 
 PokeWoW.lua
 MusicTracks.lua
+BattleFrames.lua
 Options.lua

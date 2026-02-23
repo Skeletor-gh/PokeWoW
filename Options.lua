@@ -238,6 +238,34 @@ local function BuildMusicPanel(parentCategory)
     return category
 end
 
+local function BuildBattleFramesPanel(parentCategory)
+    local panel = CreateFrame("Frame")
+    panel:Hide()
+    panel.controls = {}
+
+    CreateTitle(panel, "BattleFrames")
+    CreateBody(panel, "Enhanced pet battle frame logic for tracking abilities, cooldown state, and aura context on ability buttons.")
+
+    local battleFramesCheckbox = CreateFrame("CheckButton", addonName .. "BattleFramesEnabledCheckbox", panel, "UICheckButtonTemplate")
+    battleFramesCheckbox:SetPoint("TOPLEFT", 16, -120)
+    battleFramesCheckbox.Text:SetText("Enable BattleFrames")
+    battleFramesCheckbox:SetChecked(Core.db.battleFrames and Core.db.battleFrames.enabled)
+
+    battleFramesCheckbox:SetScript("OnClick", function(self)
+        local checked = self:GetChecked()
+        PlayCheckboxSound(checked)
+        Core:SetBattleFramesEnabled(checked)
+        Core:PrintStatus("BattleFrames " .. (checked and "enabled." or "disabled."))
+    end)
+
+    panel.controls = { battleFramesCheckbox }
+
+    CreateFooter(panel)
+    local category = AddCategory(panel, "BattleFrames", parentCategory)
+    ns.battleFramesPanel = panel
+    return category
+end
+
 function ns.RefreshOptionsState()
     if not Core or not Core.db then
         return
@@ -253,6 +281,10 @@ function ns.RefreshOptionsState()
     if ns.musicPanel then
         SetPanelEnabled(ns.musicPanel, addonEnabled and customMusicEnabled)
     end
+
+    if ns.battleFramesPanel then
+        SetPanelEnabled(ns.battleFramesPanel, addonEnabled)
+    end
 end
 
 function ns.CreateOptionsPanels()
@@ -262,6 +294,7 @@ function ns.CreateOptionsPanels()
 
     local root = BuildWelcomePanel()
     BuildMusicPanel(root)
+    BuildBattleFramesPanel(root)
     ns.RefreshOptionsState()
     ns.optionsBuilt = true
 end
