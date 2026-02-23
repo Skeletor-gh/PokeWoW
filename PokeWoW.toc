@@ -11,4 +11,5 @@
 PokeWoW.lua
 MusicTracks.lua
 BattleFrames.lua
+BattleFrames.xml
 Options.lua
