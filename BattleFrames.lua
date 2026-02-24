@@ -209,15 +209,30 @@ function Core:ApplyBattleFramesLayout()
         end
 
         local buttonWidth = sampleButton:GetWidth() > 0 and sampleButton:GetWidth() or 56
-        local sidePadding = self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES and self:GetBattleFramesSideAbilityPadding() or 2
+        local isSideLayout = self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES
+        local sidePadding = isSideLayout and self:GetBattleFramesSideAbilityPadding() or 2
         local baseSpacing = buttonWidth + sidePadding
         local scaledSpacing = baseSpacing * scale
+
+        local centerOffset = 0
+        if isSideLayout and scale > 1 then
+            local defaultHalfSpan = buttonWidth + (buttonWidth / 2)
+            local scaledHalfSpan = scaledSpacing + (buttonWidth * scale / 2)
+            local overlapCompensation = math.max(0, scaledHalfSpan - defaultHalfSpan)
+            local parentFrame = group:GetParent()
+
+            if parentFrame and parentFrame.playerIndex == Enum.BattlePetOwner.Ally then
+                centerOffset = overlapCompensation
+            elseif parentFrame and parentFrame.playerIndex == Enum.BattlePetOwner.Enemy then
+                centerOffset = -overlapCompensation
+            end
+        end
 
         for index, button in ipairs(buttons) do
             if button then
                 button:SetScale(scale)
                 button:ClearAllPoints()
-                button:SetPoint("CENTER", group, "CENTER", (index - 2) * scaledSpacing, 0)
+                button:SetPoint("CENTER", group, "CENTER", (index - 2) * scaledSpacing + centerOffset, 0)
             end
         end
     end
