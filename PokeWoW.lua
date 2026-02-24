@@ -8,7 +8,7 @@ Core.defaults = {
     addonEnabled = true,
     customMusicEnabled = true,
     music = {
-        mode = "SEQUENTIAL", -- NO_MUSIC | SINGLE_LOOP | SEQUENTIAL | RANDOM
+        mode = "SEQUENTIAL",
         singleTrack = 1,
         sequentialIndex = 1,
         enabled = true,
@@ -29,8 +29,6 @@ Core.musicFadeDuration = 1.2
 Core.musicFadeSteps = 8
 
 Core.defaultPetBattleMusicFileIDs = {
-    -- Populate this list with discovered default pet battle music file IDs.
-    -- Example: 123456,
 }
 
 local function deepcopy(tbl)
@@ -322,7 +320,6 @@ function Core:ResumeZoneMusicIfNeeded()
         return
     end
 
-    -- Fallback for clients without RestartMusic.
     if GetCVar and SetCVar then
         local previous = GetCVar("Sound_EnableMusic")
         if previous == "1" then
