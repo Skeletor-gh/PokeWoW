@@ -312,17 +312,75 @@ local function BuildBattleFramesPanel(parentCategory)
     local positioningDropdown = CreateFrame("Frame", addonName .. "BattleFramesPositioningDropdown", panel, "UIDropDownMenuTemplate")
     positioningDropdown:SetPoint("TOPLEFT", 0, -235)
 
+    local horizontalOffsetLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    horizontalOffsetLabel:SetPoint("TOPLEFT", 16, -300)
+    horizontalOffsetLabel:SetText("Position Offset: Horizontal")
+
+    local horizontalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesHorizontalOffsetSlider", panel, "OptionsSliderTemplate")
+    horizontalOffsetSlider:SetPoint("TOPLEFT", 20, -325)
+    horizontalOffsetSlider:SetWidth(260)
+    horizontalOffsetSlider:SetMinMaxValues(-200, 200)
+    horizontalOffsetSlider:SetValueStep(1)
+    horizontalOffsetSlider:SetObeyStepOnDrag(true)
+    horizontalOffsetSlider.Low:SetText("-200")
+    horizontalOffsetSlider.High:SetText("200")
+
+    local horizontalOffsetValueText = horizontalOffsetSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    horizontalOffsetValueText:SetPoint("TOP", horizontalOffsetSlider, "BOTTOM", 0, -4)
+
+    local function RefreshHorizontalOffsetText()
+        horizontalOffsetValueText:SetText(string.format("Current: %d", Core:GetBattleFramesHorizontalOffset()))
+    end
+
+    horizontalOffsetSlider:SetValue(Core:GetBattleFramesHorizontalOffset())
+    RefreshHorizontalOffsetText()
+
+    horizontalOffsetSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor(value + 0.5)
+        Core:SetBattleFramesHorizontalOffset(snapped)
+        RefreshHorizontalOffsetText()
+    end)
+
+    local verticalOffsetLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    verticalOffsetLabel:SetPoint("TOPLEFT", 16, -390)
+    verticalOffsetLabel:SetText("Position Offset: Vertical")
+
+    local verticalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesVerticalOffsetSlider", panel, "OptionsSliderTemplate")
+    verticalOffsetSlider:SetPoint("TOPLEFT", 20, -415)
+    verticalOffsetSlider:SetWidth(260)
+    verticalOffsetSlider:SetMinMaxValues(-200, 200)
+    verticalOffsetSlider:SetValueStep(1)
+    verticalOffsetSlider:SetObeyStepOnDrag(true)
+    verticalOffsetSlider.Low:SetText("-200")
+    verticalOffsetSlider.High:SetText("200")
+
+    local verticalOffsetValueText = verticalOffsetSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    verticalOffsetValueText:SetPoint("TOP", verticalOffsetSlider, "BOTTOM", 0, -4)
+
+    local function RefreshVerticalOffsetText()
+        verticalOffsetValueText:SetText(string.format("Current: %d", Core:GetBattleFramesVerticalOffset()))
+    end
+
+    verticalOffsetSlider:SetValue(Core:GetBattleFramesVerticalOffset())
+    RefreshVerticalOffsetText()
+
+    verticalOffsetSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor(value + 0.5)
+        Core:SetBattleFramesVerticalOffset(snapped)
+        RefreshVerticalOffsetText()
+    end)
+
     local sideAbilityPaddingLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sideAbilityPaddingLabel:SetPoint("TOPLEFT", 16, -300)
+    sideAbilityPaddingLabel:SetPoint("TOPLEFT", 16, -480)
     sideAbilityPaddingLabel:SetText("Side Mode: Ability Horizontal Padding")
 
     local sideAbilityPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideAbilityPaddingSlider", panel, "OptionsSliderTemplate")
-    sideAbilityPaddingSlider:SetPoint("TOPLEFT", 20, -325)
+    sideAbilityPaddingSlider:SetPoint("TOPLEFT", 20, -505)
     sideAbilityPaddingSlider:SetWidth(260)
-    sideAbilityPaddingSlider:SetMinMaxValues(0, 20)
+    sideAbilityPaddingSlider:SetMinMaxValues(-20, 20)
     sideAbilityPaddingSlider:SetValueStep(1)
     sideAbilityPaddingSlider:SetObeyStepOnDrag(true)
-    sideAbilityPaddingSlider.Low:SetText("0")
+    sideAbilityPaddingSlider.Low:SetText("-20")
     sideAbilityPaddingSlider.High:SetText("20")
 
     local sideAbilityPaddingValueText = sideAbilityPaddingSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -342,11 +400,11 @@ local function BuildBattleFramesPanel(parentCategory)
     end)
 
     local sideGroupPaddingLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sideGroupPaddingLabel:SetPoint("TOPLEFT", 16, -390)
+    sideGroupPaddingLabel:SetPoint("TOPLEFT", 16, -570)
     sideGroupPaddingLabel:SetText("Side Mode: Group Vertical Padding")
 
     local sideGroupPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideGroupPaddingSlider", panel, "OptionsSliderTemplate")
-    sideGroupPaddingSlider:SetPoint("TOPLEFT", 20, -415)
+    sideGroupPaddingSlider:SetPoint("TOPLEFT", 20, -595)
     sideGroupPaddingSlider:SetWidth(260)
     sideGroupPaddingSlider:SetMinMaxValues(0, 40)
     sideGroupPaddingSlider:SetValueStep(1)
@@ -404,7 +462,14 @@ local function BuildBattleFramesPanel(parentCategory)
     UIDropDownMenu_SetSelectedValue(positioningDropdown, currentLayout)
     UIDropDownMenu_SetText(positioningDropdown, GetLayoutText(currentLayout))
 
-    panel.controls = { scaleSlider, positioningDropdown, sideAbilityPaddingSlider, sideGroupPaddingSlider }
+    panel.controls = {
+        scaleSlider,
+        positioningDropdown,
+        horizontalOffsetSlider,
+        verticalOffsetSlider,
+        sideAbilityPaddingSlider,
+        sideGroupPaddingSlider,
+    }
 
     CreateFooter(panel)
     local category = AddCategory(panel, "BattleFrames", parentCategory)

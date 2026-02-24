@@ -12,6 +12,12 @@ end
 if Core.defaults.battleFrames.layout == nil then
     Core.defaults.battleFrames.layout = "OVERLAP"
 end
+if Core.defaults.battleFrames.horizontalOffset == nil then
+    Core.defaults.battleFrames.horizontalOffset = 0
+end
+if Core.defaults.battleFrames.verticalOffset == nil then
+    Core.defaults.battleFrames.verticalOffset = 0
+end
 if Core.defaults.battleFrames.sideAbilityPadding == nil then
     Core.defaults.battleFrames.sideAbilityPadding = 2
 end
@@ -31,12 +37,17 @@ end
 
 local function ClampSideAbilityPadding(padding)
     local numericPadding = tonumber(padding) or 2
-    return math.max(0, math.min(20, numericPadding))
+    return math.max(-20, math.min(20, numericPadding))
 end
 
 local function ClampSideGroupPadding(padding)
     local numericPadding = tonumber(padding) or 7
     return math.max(0, math.min(40, numericPadding))
+end
+
+local function ClampFrameOffset(offset)
+    local numericOffset = tonumber(offset) or 0
+    return math.max(-200, math.min(200, numericOffset))
 end
 
 function Core:IsBattleFramesEnabled()
@@ -87,6 +98,36 @@ function Core:SetBattleFramesLayoutMode(mode)
         self.db.battleFrames.layout = BATTLE_FRAME_LAYOUT.OVERLAP
     end
 
+    self:ApplyBattleFramesLayout()
+end
+
+function Core:GetBattleFramesHorizontalOffset()
+    local offset = self.db and self.db.battleFrames and self.db.battleFrames.horizontalOffset
+    return ClampFrameOffset(offset)
+end
+
+function Core:SetBattleFramesHorizontalOffset(offset)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.horizontalOffset = ClampFrameOffset(offset)
+    self:ApplyBattleFramesLayout()
+end
+
+function Core:GetBattleFramesVerticalOffset()
+    local offset = self.db and self.db.battleFrames and self.db.battleFrames.verticalOffset
+    return ClampFrameOffset(offset)
+end
+
+function Core:SetBattleFramesVerticalOffset(offset)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.verticalOffset = ClampFrameOffset(offset)
     self:ApplyBattleFramesLayout()
 end
 
@@ -172,21 +213,24 @@ function Core:ApplyBattleFramesLayout()
     enemy2:ClearAllPoints()
     enemy3:ClearAllPoints()
 
+    local horizontalOffset = self:GetBattleFramesHorizontalOffset()
+    local verticalOffset = self:GetBattleFramesVerticalOffset()
+
     if self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES then
         local groupPadding = self:GetBattleFramesSideGroupPadding()
-        ally1:SetPoint("LEFT", UIParent, "LEFT", 250, 0)
+        ally1:SetPoint("LEFT", UIParent, "LEFT", 250 + horizontalOffset, verticalOffset)
         ally2:SetPoint("TOP", ally1, "BOTTOM", 0, -groupPadding)
         ally3:SetPoint("TOP", ally2, "BOTTOM", 0, -groupPadding)
 
-        enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250, 0)
+        enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250 + horizontalOffset, verticalOffset)
         enemy2:SetPoint("TOP", enemy1, "BOTTOM", 0, -groupPadding)
         enemy3:SetPoint("TOP", enemy2, "BOTTOM", 0, -groupPadding)
     else
-        ally1:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30, 2)
+        ally1:SetPoint("TOPLEFT", PetBattleFrame.ActiveAlly, "TOPRIGHT", 30 + horizontalOffset, 2 + verticalOffset)
         ally2:SetPoint("RIGHT", PetBattleFrame.Ally2, "LEFT", -7, 0)
         ally3:SetPoint("RIGHT", PetBattleFrame.Ally3, "LEFT", -7, 0)
 
-        enemy1:SetPoint("TOPRIGHT", PetBattleFrame.ActiveEnemy, "TOPLEFT", -30, 2)
+        enemy1:SetPoint("TOPRIGHT", PetBattleFrame.ActiveEnemy, "TOPLEFT", -30 + horizontalOffset, 2 + verticalOffset)
         enemy2:SetPoint("LEFT", PetBattleFrame.Enemy2, "RIGHT", 7, 0)
         enemy3:SetPoint("LEFT", PetBattleFrame.Enemy3, "RIGHT", 7, 0)
     end
