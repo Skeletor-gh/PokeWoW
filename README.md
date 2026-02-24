@@ -2,7 +2,7 @@
 A World of Warcraft addon focused on QoL and UX for Pet Battles. Gotta catch'em all!
 
 ## Patch Notes
-### v0.2.0 (Current)
+### v0.2.1 (Current)
 - Expanded **BattleFrames** customization with:
   - Ability button scale control.
   - Layout mode switching (**Overlap** / **Sides**).
@@ -11,7 +11,9 @@ A World of Warcraft addon focused on QoL and UX for Pet Battles. Gotta catch'em 
   - Side layout pet-name horizontal offset control.
 - Improved BattleFrames options layout and panel readability.
 - Updated in-panel wording for BattleFrames and welcome patch notes.
-- Bumped addon version metadata to **0.2.0**.
+- Removed crossfade-style music transitions to prevent early cutoff at track boundaries.
+- Tightened playback cycle timing so configured track lengths are respected.
+- Bumped addon version metadata to **0.2.1**.
 
 ### v0.1.x Highlights
 - Initial addon scaffolding (TOC + core + options).

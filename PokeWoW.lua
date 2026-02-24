@@ -25,9 +25,6 @@ Core.defaults = {
     },
 }
 
-Core.musicFadeDuration = 1.2
-Core.musicFadeSteps = 8
-
 Core.defaultPetBattleMusicFileIDs = {
 }
 
@@ -176,13 +173,6 @@ function Core:StopCustomMusic()
         self.musicTimer = nil
     end
 
-    if self.musicFadeTicker then
-        self.musicFadeTicker:Cancel()
-        self.musicFadeTicker = nil
-    end
-
-    self.pendingTrack = nil
-
     if self.currentSoundHandle then
         StopSound(self.currentSoundHandle)
         self.currentSoundHandle = nil
@@ -193,103 +183,6 @@ function Core:StopCustomMusic()
     end
 
     self.customMusicPlaying = false
-    self:RestoreMusicVolume()
-end
-
-function Core:GetMusicVolume()
-    if not GetCVar then
-        return 1
-    end
-
-    local volume = tonumber(GetCVar("Sound_MusicVolume"))
-    if not volume then
-        return 1
-    end
-
-    return math.max(0, math.min(1, volume))
-end
-
-function Core:SetMusicVolume(volume)
-    if not SetCVar then
-        return
-    end
-
-    local clamped = math.max(0, math.min(1, tonumber(volume) or 1))
-    SetCVar("Sound_MusicVolume", tostring(clamped))
-end
-
-function Core:CaptureMusicVolumeBaseline()
-    if self.musicVolumeBaseline == nil then
-        self.musicVolumeBaseline = self:GetMusicVolume()
-    end
-end
-
-function Core:RestoreMusicVolume()
-    if self.musicVolumeBaseline == nil then
-        return
-    end
-
-    self:SetMusicVolume(self.musicVolumeBaseline)
-    self.musicVolumeBaseline = nil
-end
-
-function Core:StartTrackPlayback(track, useFadeIn)
-    if not track then
-        return
-    end
-
-    self:CaptureMusicVolumeBaseline()
-
-    if useFadeIn and self.musicVolumeBaseline and self.musicVolumeBaseline > 0 then
-        self:SetMusicVolume(0)
-    end
-
-    self:PlayTrack(track)
-
-    if not useFadeIn then
-        return
-    end
-
-    self:FadeMusicVolume(0, self.musicVolumeBaseline or 1, self.musicFadeDuration)
-end
-
-function Core:FadeMusicVolume(fromVolume, toVolume, duration, onComplete)
-    if self.musicFadeTicker then
-        self.musicFadeTicker:Cancel()
-        self.musicFadeTicker = nil
-    end
-
-    local steps = math.max(1, tonumber(self.musicFadeSteps) or 8)
-    local tickInterval = math.max(0.05, (tonumber(duration) or 0) / steps)
-    local fromValue = math.max(0, math.min(1, tonumber(fromVolume) or 1))
-    local toValue = math.max(0, math.min(1, tonumber(toVolume) or 1))
-    local currentStep = 0
-
-    self:SetMusicVolume(fromValue)
-
-    local ticker
-    ticker = C_Timer.NewTicker(tickInterval, function()
-        currentStep = currentStep + 1
-        local progress = currentStep / steps
-        local volume = fromValue + ((toValue - fromValue) * progress)
-        self:SetMusicVolume(volume)
-
-        if currentStep >= steps then
-            if ticker then
-                ticker:Cancel()
-            end
-            if self.musicFadeTicker == ticker then
-                self.musicFadeTicker = nil
-            end
-            self:SetMusicVolume(toValue)
-
-            if onComplete then
-                onComplete()
-            end
-        end
-    end)
-
-    self.musicFadeTicker = ticker
 end
 
 function Core:IsZoneMusicPlaying()
@@ -351,7 +244,7 @@ function Core:ScheduleNextPlay(delay)
         self.musicTimer:Cancel()
     end
 
-    local safeDelay = math.max(0.1, (tonumber(delay) or 0) + 0.1)
+    local safeDelay = math.max(1, tonumber(delay) or 0)
     self.musicTimer = C_Timer.NewTimer(safeDelay, function()
         self:PlayMusicCycle()
     end)
@@ -390,21 +283,7 @@ function Core:PlayMusicCycle()
         return
     end
 
-    local shouldFadeTransition = (mode == "SEQUENTIAL" or mode == "RANDOM") and self.customMusicPlaying
-    if shouldFadeTransition and self.musicVolumeBaseline and self.musicVolumeBaseline > 0 then
-        self.pendingTrack = track
-        self:FadeMusicVolume(self:GetMusicVolume(), 0, self.musicFadeDuration, function()
-            if not self.inPetBattle or not self:IsCustomMusicEnabled() or not self.pendingTrack then
-                return
-            end
-
-            local nextTrack = self.pendingTrack
-            self.pendingTrack = nil
-            self:StartTrackPlayback(nextTrack, true)
-        end)
-    else
-        self:StartTrackPlayback(track, false)
-    end
+    self:PlayTrack(track)
 
     self:ScheduleNextPlay(length)
 end
