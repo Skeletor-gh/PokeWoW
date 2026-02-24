@@ -21,6 +21,7 @@ Core.defaults = {
         verticalOffset = 400,
         sideAbilityPadding = 2,
         sideGroupPadding = 8,
+        sideNameHorizontalOffset = 0,
     },
 }
 
