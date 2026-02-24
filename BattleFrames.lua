@@ -24,6 +24,9 @@ end
 if Core.defaults.battleFrames.sideGroupPadding == nil then
     Core.defaults.battleFrames.sideGroupPadding = 8
 end
+if Core.defaults.battleFrames.sideNameHorizontalOffset == nil then
+    Core.defaults.battleFrames.sideNameHorizontalOffset = 0
+end
 
 local BATTLE_FRAME_LAYOUT = {
     OVERLAP = "OVERLAP",
@@ -48,6 +51,11 @@ end
 local function ClampFrameOffset(offset)
     local numericOffset = tonumber(offset) or 0
     return math.max(-400, math.min(400, numericOffset))
+end
+
+local function ClampSideNameHorizontalOffset(offset)
+    local numericOffset = tonumber(offset) or 0
+    return math.max(-50, math.min(0, numericOffset))
 end
 
 function Core:IsBattleFramesEnabled()
@@ -161,6 +169,21 @@ function Core:SetBattleFramesSideGroupPadding(padding)
     self:ApplyBattleFramesLayout()
 end
 
+function Core:GetBattleFramesSideNameHorizontalOffset()
+    local offset = self.db and self.db.battleFrames and self.db.battleFrames.sideNameHorizontalOffset
+    return ClampSideNameHorizontalOffset(offset)
+end
+
+function Core:SetBattleFramesSideNameHorizontalOffset(offset)
+    if not self.db then
+        return
+    end
+
+    self.db.battleFrames = self.db.battleFrames or {}
+    self.db.battleFrames.sideNameHorizontalOffset = ClampSideNameHorizontalOffset(offset)
+    self:ApplyBattleFramesLayout()
+end
+
 function Core:ApplyBattleFramesLayout()
     local frame = DeePetBattleFrame
     if not frame then
@@ -217,6 +240,21 @@ function Core:ApplyBattleFramesLayout()
     local verticalOffset = self:GetBattleFramesVerticalOffset()
 
     local isSideLayout = self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES
+    local sideNameHorizontalOffset = self:GetBattleFramesSideNameHorizontalOffset()
+    local sideNameScaleAdjustment = math.floor(math.max(0, (scale - 1) * 10) + 0.5)
+
+    local function UpdateSideNamePosition(petFrame)
+        if not petFrame or not petFrame.SideName or not petFrame.Abilities then
+            return
+        end
+
+        petFrame.SideName:ClearAllPoints()
+        if petFrame.playerIndex == Enum.BattlePetOwner.Ally then
+            petFrame.SideName:SetPoint("RIGHT", petFrame.Abilities, "LEFT", -10 + sideNameHorizontalOffset - sideNameScaleAdjustment, 0)
+        else
+            petFrame.SideName:SetPoint("LEFT", petFrame.Abilities, "RIGHT", 10 + sideNameHorizontalOffset + sideNameScaleAdjustment, 0)
+        end
+    end
 
     if isSideLayout then
         local groupPadding = self:GetBattleFramesSideGroupPadding()
@@ -241,6 +279,8 @@ function Core:ApplyBattleFramesLayout()
         if not petFrame or not petFrame.SideName then
             return
         end
+
+        UpdateSideNamePosition(petFrame)
 
         if isSideLayout and petFrame.SideName:GetText() and petFrame.SideName:GetText() ~= "" then
             petFrame.SideName:Show()
@@ -799,12 +839,6 @@ do
         if (self.SideName == nil) then
             self.SideName = self:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
             self.SideName:SetJustifyH("CENTER")
-
-            if (playerIndex == Enum.BattlePetOwner.Ally) then
-                self.SideName:SetPoint("RIGHT", self.Abilities, "LEFT", -10, 0)
-            else
-                self.SideName:SetPoint("LEFT", self.Abilities, "RIGHT", 10, 0)
-            end
 
             self.SideName:Hide()
         end

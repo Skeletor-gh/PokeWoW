@@ -442,8 +442,37 @@ local function BuildBattleFramesPanel(parentCategory)
         RefreshSideGroupPaddingText()
     end)
 
+    local sideNameHorizontalOffsetLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    sideNameHorizontalOffsetLabel:SetPoint("TOPLEFT", 16, -520)
+    sideNameHorizontalOffsetLabel:SetText("Side Mode: Pet Name Left Shift")
+
+    local sideNameHorizontalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesSideNameHorizontalOffsetSlider", content, "OptionsSliderTemplate")
+    sideNameHorizontalOffsetSlider:SetPoint("TOPLEFT", 20, -545)
+    sideNameHorizontalOffsetSlider:SetWidth(220)
+    sideNameHorizontalOffsetSlider:SetMinMaxValues(-50, 0)
+    sideNameHorizontalOffsetSlider:SetValueStep(5)
+    sideNameHorizontalOffsetSlider:SetObeyStepOnDrag(true)
+    sideNameHorizontalOffsetSlider.Low:SetText("-50")
+    sideNameHorizontalOffsetSlider.High:SetText("0")
+
+    local sideNameHorizontalOffsetValueText = sideNameHorizontalOffsetSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    sideNameHorizontalOffsetValueText:SetPoint("TOP", sideNameHorizontalOffsetSlider, "BOTTOM", 0, -4)
+
+    local function RefreshSideNameHorizontalOffsetText()
+        sideNameHorizontalOffsetValueText:SetText(string.format("Current: %d", Core:GetBattleFramesSideNameHorizontalOffset()))
+    end
+
+    sideNameHorizontalOffsetSlider:SetValue(Core:GetBattleFramesSideNameHorizontalOffset())
+    RefreshSideNameHorizontalOffsetText()
+
+    sideNameHorizontalOffsetSlider:SetScript("OnValueChanged", function(self, value)
+        local snapped = math.floor((value / 5) + (value >= 0 and 0.5 or -0.5)) * 5
+        Core:SetBattleFramesSideNameHorizontalOffset(snapped)
+        RefreshSideNameHorizontalOffsetText()
+    end)
+
     local resetButton = CreateFrame("Button", addonName .. "BattleFramesResetDefaultsButton", content, "UIPanelButtonTemplate")
-    resetButton:SetPoint("TOPLEFT", 16, -520)
+    resetButton:SetPoint("TOPLEFT", 16, -630)
     resetButton:SetSize(230, 28)
     resetButton:SetText("Restore Side Mode Defaults")
 
@@ -456,6 +485,7 @@ local function BuildBattleFramesPanel(parentCategory)
         verticalOffsetSlider,
         sideAbilityPaddingSlider,
         sideGroupPaddingSlider,
+        sideNameHorizontalOffsetSlider,
         resetButton,
     }
 
@@ -464,6 +494,7 @@ local function BuildBattleFramesPanel(parentCategory)
         verticalOffsetLabel,
         sideAbilityPaddingLabel,
         sideGroupPaddingLabel,
+        sideNameHorizontalOffsetLabel,
     }
 
     local function SetFontStringEnabled(fontString, enabled)
@@ -525,17 +556,20 @@ local function BuildBattleFramesPanel(parentCategory)
         Core:SetBattleFramesVerticalOffset(400)
         Core:SetBattleFramesSideAbilityPadding(2)
         Core:SetBattleFramesSideGroupPadding(8)
+        Core:SetBattleFramesSideNameHorizontalOffset(0)
 
         scaleSlider:SetValue(Core:GetBattleFramesButtonScale())
         horizontalOffsetSlider:SetValue(Core:GetBattleFramesHorizontalOffset())
         verticalOffsetSlider:SetValue(Core:GetBattleFramesVerticalOffset())
         sideAbilityPaddingSlider:SetValue(Core:GetBattleFramesSideAbilityPadding())
         sideGroupPaddingSlider:SetValue(Core:GetBattleFramesSideGroupPadding())
+        sideNameHorizontalOffsetSlider:SetValue(Core:GetBattleFramesSideNameHorizontalOffset())
         RefreshScaleText()
         RefreshHorizontalOffsetText()
         RefreshVerticalOffsetText()
         RefreshSideAbilityPaddingText()
         RefreshSideGroupPaddingText()
+        RefreshSideNameHorizontalOffsetText()
     end)
 
     RefreshSideModeEnabledState()
@@ -547,6 +581,7 @@ local function BuildBattleFramesPanel(parentCategory)
         verticalOffsetSlider,
         sideAbilityPaddingSlider,
         sideGroupPaddingSlider,
+        sideNameHorizontalOffsetSlider,
         resetButton,
     }
 
