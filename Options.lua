@@ -138,7 +138,7 @@ local function BuildWelcomePanel(parentCategory)
     patchNotesBody:SetPoint("RIGHT", -16, 0)
     patchNotesBody:SetJustifyH("LEFT")
     patchNotesBody:SetJustifyV("TOP")
-    patchNotesBody:SetText("- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.\n- Added BattleFrames UI to showcase pet abilities.")
+    patchNotesBody:SetText("- v0.2.1: Removed music fade transitions for tighter, full-length playback.\n- v0.2.1: Improved playback timer handling to better respect configured track lengths.\n- Added options with feature sub-panels.\n- Added BattleFrames UI to showcase pet abilities.")
 
     panel.controls = { addonEnabledCheckbox, customMusicCheckbox, battleFramesCheckbox }
 
