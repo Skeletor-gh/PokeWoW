@@ -107,7 +107,7 @@ local function BuildWelcomePanel(parentCategory)
     panel.controls = {}
 
     CreateTitle(panel, "PokeWoW")
-    CreateBody(panel, "Welcome to PokeWoW, your UX and QoL toolbox for Pet Battles.\n\nLatest patch notes:\n- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.\n- Added BattleFrames UI to showcase pet abilities.")
+    CreateBody(panel, "Welcome to PokeWoW, your UX and QoL toolbox for Pet Battles.")
 
     local bg = panel:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(panel)
@@ -128,6 +128,17 @@ local function BuildWelcomePanel(parentCategory)
     battleFramesCheckbox:SetPoint("TOPLEFT", 16, -190)
     battleFramesCheckbox.Text:SetText("Enable BattleFrames")
     battleFramesCheckbox:SetChecked(Core.db.battleFrames and Core.db.battleFrames.enabled)
+
+    local patchNotesLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    patchNotesLabel:SetPoint("TOPLEFT", battleFramesCheckbox, "BOTTOMLEFT", 0, -20)
+    patchNotesLabel:SetText("Latest patch notes")
+
+    local patchNotesBody = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    patchNotesBody:SetPoint("TOPLEFT", patchNotesLabel, "BOTTOMLEFT", 0, -8)
+    patchNotesBody:SetPoint("RIGHT", -16, 0)
+    patchNotesBody:SetJustifyH("LEFT")
+    patchNotesBody:SetJustifyV("TOP")
+    patchNotesBody:SetText("- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.\n- Added BattleFrames UI to showcase pet abilities.")
 
     panel.controls = { addonEnabledCheckbox, customMusicCheckbox, battleFramesCheckbox }
 
