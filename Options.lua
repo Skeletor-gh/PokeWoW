@@ -328,7 +328,7 @@ local function BuildBattleFramesPanel(parentCategory)
 
     local horizontalOffsetLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     horizontalOffsetLabel:SetPoint("TOPLEFT", 16, -300)
-    horizontalOffsetLabel:SetText("Position Offset: Horizontal")
+    horizontalOffsetLabel:SetText("Side Mode: Team Center Spacing")
 
     local horizontalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesHorizontalOffsetSlider", content, "OptionsSliderTemplate")
     horizontalOffsetSlider:SetPoint("TOPLEFT", 20, -325)
@@ -444,16 +444,16 @@ local function BuildBattleFramesPanel(parentCategory)
 
     local sideNameHorizontalOffsetLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     sideNameHorizontalOffsetLabel:SetPoint("TOPLEFT", 16, -520)
-    sideNameHorizontalOffsetLabel:SetText("Side Mode: Pet Name Left Shift")
+    sideNameHorizontalOffsetLabel:SetText("Side Mode: Pet Name Center Offset")
 
     local sideNameHorizontalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesSideNameHorizontalOffsetSlider", content, "OptionsSliderTemplate")
     sideNameHorizontalOffsetSlider:SetPoint("TOPLEFT", 20, -545)
     sideNameHorizontalOffsetSlider:SetWidth(220)
-    sideNameHorizontalOffsetSlider:SetMinMaxValues(-50, 0)
+    sideNameHorizontalOffsetSlider:SetMinMaxValues(-50, 50)
     sideNameHorizontalOffsetSlider:SetValueStep(5)
     sideNameHorizontalOffsetSlider:SetObeyStepOnDrag(true)
     sideNameHorizontalOffsetSlider.Low:SetText("-50")
-    sideNameHorizontalOffsetSlider.High:SetText("0")
+    sideNameHorizontalOffsetSlider.High:SetText("50")
 
     local sideNameHorizontalOffsetValueText = sideNameHorizontalOffsetSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     sideNameHorizontalOffsetValueText:SetPoint("TOP", sideNameHorizontalOffsetSlider, "BOTTOM", 0, -4)

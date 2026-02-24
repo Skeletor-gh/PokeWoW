@@ -55,7 +55,7 @@ end
 
 local function ClampSideNameHorizontalOffset(offset)
     local numericOffset = tonumber(offset) or 0
-    return math.max(-50, math.min(0, numericOffset))
+    return math.max(-50, math.min(50, numericOffset))
 end
 
 function Core:IsBattleFramesEnabled()
@@ -252,7 +252,7 @@ function Core:ApplyBattleFramesLayout()
         if petFrame.playerIndex == Enum.BattlePetOwner.Ally then
             petFrame.SideName:SetPoint("RIGHT", petFrame.Abilities, "LEFT", -10 + sideNameHorizontalOffset - sideNameScaleAdjustment, 0)
         else
-            petFrame.SideName:SetPoint("LEFT", petFrame.Abilities, "RIGHT", 10 + sideNameHorizontalOffset + sideNameScaleAdjustment, 0)
+            petFrame.SideName:SetPoint("LEFT", petFrame.Abilities, "RIGHT", 10 - sideNameHorizontalOffset + sideNameScaleAdjustment, 0)
         end
     end
 
@@ -262,7 +262,7 @@ function Core:ApplyBattleFramesLayout()
         ally2:SetPoint("TOP", ally1, "BOTTOM", 0, -groupPadding)
         ally3:SetPoint("TOP", ally2, "BOTTOM", 0, -groupPadding)
 
-        enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250 + horizontalOffset, verticalOffset)
+        enemy1:SetPoint("RIGHT", UIParent, "RIGHT", -250 - horizontalOffset, verticalOffset)
         enemy2:SetPoint("TOP", enemy1, "BOTTOM", 0, -groupPadding)
         enemy3:SetPoint("TOP", enemy2, "BOTTOM", 0, -groupPadding)
     else
