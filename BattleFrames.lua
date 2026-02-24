@@ -10,19 +10,19 @@ if Core.defaults.battleFrames.buttonScale == nil then
     Core.defaults.battleFrames.buttonScale = 1
 end
 if Core.defaults.battleFrames.layout == nil then
-    Core.defaults.battleFrames.layout = "OVERLAP"
+    Core.defaults.battleFrames.layout = "SIDES"
 end
 if Core.defaults.battleFrames.horizontalOffset == nil then
     Core.defaults.battleFrames.horizontalOffset = 0
 end
 if Core.defaults.battleFrames.verticalOffset == nil then
-    Core.defaults.battleFrames.verticalOffset = 0
+    Core.defaults.battleFrames.verticalOffset = 400
 end
 if Core.defaults.battleFrames.sideAbilityPadding == nil then
     Core.defaults.battleFrames.sideAbilityPadding = 2
 end
 if Core.defaults.battleFrames.sideGroupPadding == nil then
-    Core.defaults.battleFrames.sideGroupPadding = 7
+    Core.defaults.battleFrames.sideGroupPadding = 8
 end
 
 local BATTLE_FRAME_LAYOUT = {
@@ -41,7 +41,7 @@ local function ClampSideAbilityPadding(padding)
 end
 
 local function ClampSideGroupPadding(padding)
-    local numericPadding = tonumber(padding) or 7
+    local numericPadding = tonumber(padding) or 8
     return math.max(0, math.min(40, numericPadding))
 end
 

@@ -16,11 +16,11 @@ Core.defaults = {
     battleFrames = {
         enabled = true,
         buttonScale = 1,
-        layout = "OVERLAP",
+        layout = "SIDES",
         horizontalOffset = 0,
-        verticalOffset = 0,
+        verticalOffset = 400,
         sideAbilityPadding = 2,
-        sideGroupPadding = 7,
+        sideGroupPadding = 8,
     },
 }
 

@@ -278,7 +278,7 @@ local function BuildBattleFramesPanel(parentCategory)
     scrollFrame:SetPoint("BOTTOMRIGHT", -28, 28)
 
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(1, 760)
+    scrollChild:SetSize(1, 720)
     scrollFrame:SetScrollChild(scrollChild)
 
     panel:SetScript("OnSizeChanged", function(self, width)
@@ -332,7 +332,7 @@ local function BuildBattleFramesPanel(parentCategory)
 
     local horizontalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesHorizontalOffsetSlider", content, "OptionsSliderTemplate")
     horizontalOffsetSlider:SetPoint("TOPLEFT", 20, -325)
-    horizontalOffsetSlider:SetWidth(260)
+    horizontalOffsetSlider:SetWidth(220)
     horizontalOffsetSlider:SetMinMaxValues(-400, 400)
     horizontalOffsetSlider:SetValueStep(1)
     horizontalOffsetSlider:SetObeyStepOnDrag(true)
@@ -356,12 +356,12 @@ local function BuildBattleFramesPanel(parentCategory)
     end)
 
     local verticalOffsetLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    verticalOffsetLabel:SetPoint("TOPLEFT", 16, -390)
+    verticalOffsetLabel:SetPoint("TOPLEFT", 296, -300)
     verticalOffsetLabel:SetText("Position Offset: Vertical")
 
     local verticalOffsetSlider = CreateFrame("Slider", addonName .. "BattleFramesVerticalOffsetSlider", content, "OptionsSliderTemplate")
-    verticalOffsetSlider:SetPoint("TOPLEFT", 20, -415)
-    verticalOffsetSlider:SetWidth(260)
+    verticalOffsetSlider:SetPoint("TOPLEFT", 300, -325)
+    verticalOffsetSlider:SetWidth(220)
     verticalOffsetSlider:SetMinMaxValues(-400, 400)
     verticalOffsetSlider:SetValueStep(1)
     verticalOffsetSlider:SetObeyStepOnDrag(true)
@@ -385,12 +385,12 @@ local function BuildBattleFramesPanel(parentCategory)
     end)
 
     local sideAbilityPaddingLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sideAbilityPaddingLabel:SetPoint("TOPLEFT", 16, -480)
+    sideAbilityPaddingLabel:SetPoint("TOPLEFT", 16, -410)
     sideAbilityPaddingLabel:SetText("Side Mode: Ability Horizontal Padding")
 
     local sideAbilityPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideAbilityPaddingSlider", content, "OptionsSliderTemplate")
-    sideAbilityPaddingSlider:SetPoint("TOPLEFT", 20, -505)
-    sideAbilityPaddingSlider:SetWidth(260)
+    sideAbilityPaddingSlider:SetPoint("TOPLEFT", 20, -435)
+    sideAbilityPaddingSlider:SetWidth(220)
     sideAbilityPaddingSlider:SetMinMaxValues(-20, 20)
     sideAbilityPaddingSlider:SetValueStep(1)
     sideAbilityPaddingSlider:SetObeyStepOnDrag(true)
@@ -414,12 +414,12 @@ local function BuildBattleFramesPanel(parentCategory)
     end)
 
     local sideGroupPaddingLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sideGroupPaddingLabel:SetPoint("TOPLEFT", 16, -570)
+    sideGroupPaddingLabel:SetPoint("TOPLEFT", 296, -410)
     sideGroupPaddingLabel:SetText("Side Mode: Group Vertical Padding")
 
     local sideGroupPaddingSlider = CreateFrame("Slider", addonName .. "BattleFramesSideGroupPaddingSlider", content, "OptionsSliderTemplate")
-    sideGroupPaddingSlider:SetPoint("TOPLEFT", 20, -595)
-    sideGroupPaddingSlider:SetWidth(260)
+    sideGroupPaddingSlider:SetPoint("TOPLEFT", 300, -435)
+    sideGroupPaddingSlider:SetWidth(220)
     sideGroupPaddingSlider:SetMinMaxValues(0, 40)
     sideGroupPaddingSlider:SetValueStep(1)
     sideGroupPaddingSlider:SetObeyStepOnDrag(true)
@@ -441,6 +441,47 @@ local function BuildBattleFramesPanel(parentCategory)
         Core:SetBattleFramesSideGroupPadding(snapped)
         RefreshSideGroupPaddingText()
     end)
+
+    local resetButton = CreateFrame("Button", addonName .. "BattleFramesResetDefaultsButton", content, "UIPanelButtonTemplate")
+    resetButton:SetPoint("TOPLEFT", 16, -520)
+    resetButton:SetSize(230, 28)
+    resetButton:SetText("Restore Side Mode Defaults")
+
+    local resetHint = content:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    resetHint:SetPoint("TOPLEFT", resetButton, "BOTTOMLEFT", 4, -6)
+    resetHint:SetText("Applies only to Split to sides mode.")
+
+    local sideModeControls = {
+        horizontalOffsetSlider,
+        verticalOffsetSlider,
+        sideAbilityPaddingSlider,
+        sideGroupPaddingSlider,
+        resetButton,
+    }
+
+    local sideModeLabels = {
+        horizontalOffsetLabel,
+        verticalOffsetLabel,
+        sideAbilityPaddingLabel,
+        sideGroupPaddingLabel,
+    }
+
+    local function SetFontStringEnabled(fontString, enabled)
+        fontString:SetTextColor(enabled and 1 or 0.5, enabled and 1 or 0.5, enabled and 1 or 0.5)
+    end
+
+    local function RefreshSideModeEnabledState()
+        local inSideMode = (Core:GetBattleFramesLayoutMode() == "SIDES")
+        for _, control in ipairs(sideModeControls) do
+            SetControlEnabled(control, inSideMode)
+        end
+
+        for _, label in ipairs(sideModeLabels) do
+            SetFontStringEnabled(label, inSideMode)
+        end
+
+        SetFontStringEnabled(resetHint, inSideMode)
+    end
 
     local layoutItems = {
         { text = "Overlapped with top bar", value = "OVERLAP" },
@@ -466,6 +507,7 @@ local function BuildBattleFramesPanel(parentCategory)
                 Core:SetBattleFramesLayoutMode(item.value)
                 UIDropDownMenu_SetSelectedValue(positioningDropdown, item.value)
                 UIDropDownMenu_SetText(positioningDropdown, item.text)
+                RefreshSideModeEnabledState()
             end
             UIDropDownMenu_AddButton(info)
         end
@@ -476,6 +518,28 @@ local function BuildBattleFramesPanel(parentCategory)
     UIDropDownMenu_SetSelectedValue(positioningDropdown, currentLayout)
     UIDropDownMenu_SetText(positioningDropdown, GetLayoutText(currentLayout))
 
+    resetButton:SetScript("OnClick", function()
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+        Core:SetBattleFramesButtonScale(1)
+        Core:SetBattleFramesHorizontalOffset(0)
+        Core:SetBattleFramesVerticalOffset(400)
+        Core:SetBattleFramesSideAbilityPadding(2)
+        Core:SetBattleFramesSideGroupPadding(8)
+
+        scaleSlider:SetValue(Core:GetBattleFramesButtonScale())
+        horizontalOffsetSlider:SetValue(Core:GetBattleFramesHorizontalOffset())
+        verticalOffsetSlider:SetValue(Core:GetBattleFramesVerticalOffset())
+        sideAbilityPaddingSlider:SetValue(Core:GetBattleFramesSideAbilityPadding())
+        sideGroupPaddingSlider:SetValue(Core:GetBattleFramesSideGroupPadding())
+        RefreshScaleText()
+        RefreshHorizontalOffsetText()
+        RefreshVerticalOffsetText()
+        RefreshSideAbilityPaddingText()
+        RefreshSideGroupPaddingText()
+    end)
+
+    RefreshSideModeEnabledState()
+
     panel.controls = {
         scaleSlider,
         positioningDropdown,
@@ -483,6 +547,7 @@ local function BuildBattleFramesPanel(parentCategory)
         verticalOffsetSlider,
         sideAbilityPaddingSlider,
         sideGroupPaddingSlider,
+        resetButton,
     }
 
     CreateFooter(content)
