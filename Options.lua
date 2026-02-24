@@ -107,7 +107,7 @@ local function BuildWelcomePanel(parentCategory)
     panel.controls = {}
 
     CreateTitle(panel, "PokeWoW")
-    CreateBody(panel, "Welcome to PokeWoW, your UX and QoL toolbox for Pet Battles.\n\nLatest patch notes:\n- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.")
+    CreateBody(panel, "Welcome to PokeWoW, your UX and QoL toolbox for Pet Battles.\n\nLatest patch notes:\n- Initial addon scaffolding.\n- Added options with feature sub-panels.\n- Added custom Pet Battle music replacer and playlist support.\n- Added BattleFrames UI to showcase pet abilities.")
 
     local bg = panel:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(panel)
@@ -288,7 +288,7 @@ local function BuildBattleFramesPanel(parentCategory)
     local content = scrollChild
 
     CreateTitle(content, "BattleFrames")
-    CreateBody(content, "Configure the top pet battle ability buttons.")
+    CreateBody(content, "Customized Pet Battle UI")
 
     local scaleLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     scaleLabel:SetPoint("TOPLEFT", 16, -120)
