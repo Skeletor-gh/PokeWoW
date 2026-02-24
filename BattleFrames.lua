@@ -47,7 +47,7 @@ end
 
 local function ClampFrameOffset(offset)
     local numericOffset = tonumber(offset) or 0
-    return math.max(-200, math.min(200, numericOffset))
+    return math.max(-400, math.min(400, numericOffset))
 end
 
 function Core:IsBattleFramesEnabled()
@@ -216,7 +216,9 @@ function Core:ApplyBattleFramesLayout()
     local horizontalOffset = self:GetBattleFramesHorizontalOffset()
     local verticalOffset = self:GetBattleFramesVerticalOffset()
 
-    if self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES then
+    local isSideLayout = self:GetBattleFramesLayoutMode() == BATTLE_FRAME_LAYOUT.SIDES
+
+    if isSideLayout then
         local groupPadding = self:GetBattleFramesSideGroupPadding()
         ally1:SetPoint("LEFT", UIParent, "LEFT", 250 + horizontalOffset, verticalOffset)
         ally2:SetPoint("TOP", ally1, "BOTTOM", 0, -groupPadding)
@@ -234,6 +236,25 @@ function Core:ApplyBattleFramesLayout()
         enemy2:SetPoint("LEFT", PetBattleFrame.Enemy2, "RIGHT", 7, 0)
         enemy3:SetPoint("LEFT", PetBattleFrame.Enemy3, "RIGHT", 7, 0)
     end
+
+    local function UpdateSideName(petFrame)
+        if not petFrame or not petFrame.SideName then
+            return
+        end
+
+        if isSideLayout and petFrame.SideName:GetText() and petFrame.SideName:GetText() ~= "" then
+            petFrame.SideName:Show()
+        else
+            petFrame.SideName:Hide()
+        end
+    end
+
+    UpdateSideName(ally1)
+    UpdateSideName(ally2)
+    UpdateSideName(ally3)
+    UpdateSideName(enemy1)
+    UpdateSideName(enemy2)
+    UpdateSideName(enemy3)
 end
 
 -----------------------------
@@ -753,10 +774,40 @@ end
 -- Pet Updating Functions --
 ----------------------------
 do
+    local function updatePetSideName(self)
+        if not self or not self.SideName then
+            return
+        end
+
+        local petName = ""
+        if self.playerIndex and self.petIndex then
+            petName = C_PetBattles.GetName(self.playerIndex, self.petIndex) or ""
+        end
+
+        self.SideName:SetText(petName)
+
+        if Core and Core.ApplyBattleFramesLayout then
+            Core:ApplyBattleFramesLayout()
+        end
+    end
+
     DeePetBattlePet_OnLoad = function( self, playerIndex, frameIndex )
         --remember which pet we're watching
         self.playerIndex = playerIndex
         self.frameIndex = frameIndex
+
+        if (self.SideName == nil) then
+            self.SideName = self:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            self.SideName:SetJustifyH("CENTER")
+
+            if (playerIndex == Enum.BattlePetOwner.Ally) then
+                self.SideName:SetPoint("RIGHT", self.Abilities, "LEFT", -10, 0)
+            else
+                self.SideName:SetPoint("LEFT", self.Abilities, "RIGHT", 10, 0)
+            end
+
+            self.SideName:Hide()
+        end
 
         local groupFrame = self.Abilities
         if (self.Auras == nil) then    --active pets get bigger cooldowns, have no aura frames, and their durations are farther
@@ -817,6 +868,8 @@ do
             updateAbilityGroupPetIndex( self.Abilities )
             updatePetAuras( self )
         end
+
+        updatePetSideName(self)
     end
 
     --returns a table with info about all auras affecting the given pet
@@ -911,6 +964,7 @@ do
     --forget petIndex when pet battle ends
     DeePetBattlePet_EventHandlers["PET_BATTLE_CLOSE"] = function(self)
         self.petIndex = nil
+        updatePetSideName(self)
     end
 
     --update abilities whenever there is a pet swap
