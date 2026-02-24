@@ -1,0 +1,292 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+
+    <Frame name="DeePetBattleAuraTemplate" virtual="true">
+        <Size x="33" y="32"/>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture parentKey="Icon">
+                    <Size x="30" y="30"/>
+                    <Anchors>
+                        <Anchor point="CENTER" relativeKey="$parent" relativePoint="CENTER" x="0" y="0"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString parentKey="Duration" inherits="GameFontHighlight" justifyH="CENTER" justifyV="TOP">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                        <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+                        <Anchor point="BOTTOM" relativePoint="BOTTOM" x="0" y="-16"/>
+                    </Anchors>
+                </FontString>
+                <Texture parentKey="DebuffBorder" file="Interface\Buttons\UI-Debuff-Overlays">
+                    <Size>
+                        <AbsDimension x="33" y="32"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="CENTER" relativeKey="$parent.Icon" relativePoint="CENTER"/>
+                    </Anchors>
+                    <TexCoords left="0.296875" right="0.5703125" top="0" bottom="0.515625"/>
+                    <Color r="1" g="0" b="0"/>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnEnter function="DeePetBattleAura_OnEnter"/>
+            <OnLeave function="DeePetBattleAura_OnLeave"/>
+        </Scripts>
+    </Frame>
+
+    <Button name="DeePetBattleAbilityButtonTemplate" inherits="PetBattleActionButtonTemplate" motionScriptsWhileDisabled="true" virtual="true">
+        <Frames>
+            <Frame parentKey="topHalf">
+                <Anchors>
+                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="BOTTOMRIGHT" relativePoint="RIGHT"/>
+                </Anchors>
+                <Scripts>
+                    <OnEnter function="DeePetBattleAbilityButton_topHalf_OnEnter"/>
+                    <OnLeave function="DeePetBattleAbilityButton_OnLeave"/>
+                </Scripts>
+            </Frame>
+            <Frame parentKey="bottomHalf">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativePoint="LEFT"/>
+                    <Anchor point="BOTTOMRIGHT"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+
+        <Layers>
+            <Layer level="BACKGROUND" textureSubLevel="1">
+                <Texture parentKey="Icon2">
+                    <TexCoords left="0" right="1" top="0" bottom="0.5"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT"/>
+                        <Anchor point="BOTTOMRIGHT" relativePoint="RIGHT"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+
+            <Layer level="BORDER">
+                <Texture parentKey="topHalfBorder" file="Interface\Buttons\UI-Quickslot2">
+                    <TexCoords left="0.1953125" right="0.7890625" top="0.625" bottom="0.7734375"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativePoint="LEFT" relativeKey="$parent.topHalf"/>
+                        <Anchor point="BOTTOMRIGHT" relativePoint="RIGHT"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="bottomHalfBorder" file="Interface\Buttons\UI-Quickslot2">
+                    <TexCoords left="0.1953125" right="0.7890625" top="0.7734375" bottom="0.625"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativePoint="LEFT"/>
+                        <Anchor point="BOTTOMRIGHT" relativePoint="RIGHT" relativeKey="$parent.bottomHalf"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+
+            <Layer level="OVERLAY" textureSubLevel="-1">
+                <FontString parentKey="Duration" inherits="GameFontHighlightLarge" justifyH="CENTER" justifyV="TOP">
+                    <Anchors>
+                        <Anchor point="LEFT"/>
+                        <Anchor point="RIGHT"/>
+                        <Anchor point="TOP" relativePoint="BOTTOM" x="0" y="-2"/>
+                        <Anchor point="BOTTOM" relativePoint="BOTTOM" x="0" y="-18"/>
+                    </Anchors>
+                </FontString>
+                <Texture parentKey="AuraBorder" file="Interface\Buttons\UI-Debuff-Overlays">
+                    <Size>
+                        <AbsDimension x="57" y="55"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="CENTER" relativeKey="$parent.Icon" relativePoint="CENTER"/>
+                    </Anchors>
+                    <TexCoords left="0.296875" right="0.5703125" top="0" bottom="0.515625"/>
+                </Texture>
+            </Layer>
+
+            <Layer level="OVERLAY">
+                <Texture parentKey="BetterIcon2" file="Interface\PetBattles\BattleBar-AbilityBadge-Weak" hidden="true">
+                    <Size x="32" y="32"/>
+                    <Anchors>
+                        <Anchor point="TOPRIGHT" x="9" y="9"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+
+        <Scripts>
+            <OnLoad function="DeePetBattleAbilityButton_OnLoad"/>
+            <OnEvent function="DeePetBattleAbilityButton_OnEvent"/>
+            <OnEnter function="DeePetBattleAbilityButton_OnEnter"/>
+            <OnLeave function="DeePetBattleAbilityButton_OnLeave"/>
+        </Scripts>
+
+        <NormalTexture parentKey="NormalTexture" file="Interface\Buttons\UI-Quickslot2">
+            <TexCoords left="0.1953125" right="0.7890625" top="0.1953125" bottom="0.7890625"/>
+        </NormalTexture>
+
+        <PushedTexture file="Interface\Buttons\UI-Quickslot2">
+            <TexCoords left="0.1953125" right="0.7890625" top="0.1953125" bottom="0.7890625"/>
+        </PushedTexture>
+
+        <HighlightTexture/>
+    </Button>
+
+    <Frame name="DeePetBattleAbilityGroupTemplate" virtual="true">
+        <Frames>
+            <Button parentKey="Button1" inherits="DeePetBattleAbilityButtonTemplate">
+                <Anchors>
+                    <Anchor point="LEFT" relativePoint="LEFT"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="Button2" inherits="DeePetBattleAbilityButtonTemplate">
+                <Anchors>
+                    <Anchor point="CENTER" relativePoint="CENTER"/>
+                </Anchors>
+            </Button>
+            <Button parentKey="Button3" inherits="DeePetBattleAbilityButtonTemplate">
+                <Anchors>
+                    <Anchor point="RIGHT" relativePoint="RIGHT"/>
+                </Anchors>
+            </Button>
+        </Frames>
+
+        <Scripts>
+            <OnLoad function="DeePetBattleAbilityGroup_OnLoad"/>
+        </Scripts>
+    </Frame>
+
+    <Frame name="DeePetBattlePetTemplate" virtual="true">
+        <Size>
+            <AbsDimension x="115" y="36"/>
+        </Size>
+
+        <Frames>
+            <Frame parentKey="Abilities" inherits="DeePetBattleAbilityGroupTemplate" setAllPoints="true"/>
+        </Frames>
+
+        <Scripts>
+            <OnLoad function="DeePetBattlePet_OnLoad"/>
+            <OnEvent function="DeePetBattlePet_OnEvent"/>
+            <OnShow function="DeePetBattlePet_OnShow"/>
+        </Scripts>
+    </Frame>
+
+    <Frame name="DeePetBattleAllyPetTemplate" inherits="DeePetBattlePetTemplate" virtual="true">
+        <Frames>
+            <Frame parentKey="Auras">
+                <Frames>
+                    <Frame parentKey="NextFrame" inherits="DeePetBattleAuraTemplate" hidden="true">
+                        <Anchors>
+                            <Anchor point="RIGHT" relativePoint="RIGHT" x="0" y="0"/>
+                        </Anchors>
+                    </Frame>
+                </Frames>
+
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" relativeKey="$parent.Abilities" x="-6" y="0"/>
+                    <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" relativeKey="$parent.Abilities" x="-6" y="0"/>
+                    <Anchor point="LEFT" relativePoint="LEFT" relativeTo="UIParent"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+    </Frame>
+
+    <Frame name="DeePetBattleEnemyPetTemplate" inherits="DeePetBattlePetTemplate" virtual="true">
+        <Frames>
+            <Frame parentKey="Auras">
+                <Frames>
+                    <Frame parentKey="NextFrame" inherits="DeePetBattleAuraTemplate" hidden="true">
+                        <Anchors>
+                            <Anchor point="LEFT" relativePoint="LEFT" x="0" y="0"/>
+                        </Anchors>
+                    </Frame>
+                </Frames>
+
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeKey="$parent.Abilities" x="6" y="0"/>
+                    <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" relativeKey="$parent.Abilities" x="6" y="0"/>
+                    <Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="UIParent"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+    </Frame>
+
+    <Frame name="DeePetBattleFrame" parent="PetBattleFrame">
+        <Scripts>
+            <OnLoad function="DeePetBattleFrame_OnLoad"/>
+            <OnEvent function="DeePetBattleFrame_OnEvent"/>
+            <OnShow function="DeePetBattleFrame_OnShow"/>
+        </Scripts>
+        <Frames>
+            <Frame parentKey="Ally1" inherits="DeePetBattlePetTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.$parent.ActiveAlly" relativePoint="TOPRIGHT" x="30" y="2"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Ally, 1);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+
+            <Frame parentKey="Ally2" inherits="DeePetBattleAllyPetTemplate">
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.$parent.Ally2" relativePoint="LEFT" x="-7" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Ally, 2);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+
+            <Frame parentKey="Ally3" inherits="DeePetBattleAllyPetTemplate">
+                <Anchors>
+                    <Anchor point="RIGHT" relativeKey="$parent.$parent.Ally3" relativePoint="LEFT" x="-7" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Ally, 3);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+
+            <Frame parentKey="Enemy1" inherits="DeePetBattlePetTemplate">
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeKey="$parent.$parent.ActiveEnemy" relativePoint="TOPLEFT" x="-30" y="2"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Enemy, 1);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+
+            <Frame parentKey="Enemy2" inherits="DeePetBattleEnemyPetTemplate">
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.$parent.Enemy2" relativePoint="RIGHT" x="7" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Enemy, 2);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+
+            <Frame parentKey="Enemy3" inherits="DeePetBattleEnemyPetTemplate">
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.$parent.Enemy3" relativePoint="RIGHT" x="7" y="0"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        DeePetBattlePet_OnLoad(self, Enum.BattlePetOwner.Enemy, 3);
+                    </OnLoad>
+                </Scripts>
+            </Frame>
+        </Frames>
+    </Frame>
+</Ui>

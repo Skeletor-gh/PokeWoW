@@ -8,10 +8,20 @@ Core.defaults = {
     addonEnabled = true,
     customMusicEnabled = true,
     music = {
-        mode = "SEQUENTIAL", -- NO_MUSIC | SINGLE_LOOP | SEQUENTIAL | RANDOM
+        mode = "SEQUENTIAL",
         singleTrack = 1,
         sequentialIndex = 1,
         enabled = true,
+    },
+    battleFrames = {
+        enabled = true,
+        buttonScale = 1,
+        layout = "SIDES",
+        horizontalOffset = 0,
+        verticalOffset = 400,
+        sideAbilityPadding = 2,
+        sideGroupPadding = 8,
+        sideNameHorizontalOffset = 0,
     },
 }
 
@@ -19,8 +29,6 @@ Core.musicFadeDuration = 1.2
 Core.musicFadeSteps = 8
 
 Core.defaultPetBattleMusicFileIDs = {
-    -- Populate this list with discovered default pet battle music file IDs.
-    -- Example: 123456,
 }
 
 local function deepcopy(tbl)
@@ -53,6 +61,16 @@ function Core:InitDB()
     for key, value in pairs(self.defaults.music) do
         if PokeWoWDB.music[key] == nil then
             PokeWoWDB.music[key] = deepcopy(value)
+        end
+    end
+
+    if type(PokeWoWDB.battleFrames) ~= "table" then
+        PokeWoWDB.battleFrames = deepcopy(self.defaults.battleFrames)
+    end
+
+    for key, value in pairs(self.defaults.battleFrames) do
+        if PokeWoWDB.battleFrames[key] == nil then
+            PokeWoWDB.battleFrames[key] = deepcopy(value)
         end
     end
 
@@ -302,7 +320,6 @@ function Core:ResumeZoneMusicIfNeeded()
         return
     end
 
-    -- Fallback for clients without RestartMusic.
     if GetCVar and SetCVar then
         local previous = GetCVar("Sound_EnableMusic")
         if previous == "1" then

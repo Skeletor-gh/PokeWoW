@@ -2,7 +2,7 @@
 ## Title: PokeWoW
 ## Notes: UX and QoL tools for Pet Battles.
 ## Author: skeletor-gh
-## Version: 0.1.0
+## Version: 0.2.0
 ## IconTexture: Interface\AddOns\PokeWoW\Assets\pokelogo
 ## X-Category: Skeletor
 ## Category: Skeletor
@@ -10,4 +10,6 @@
 
 PokeWoW.lua
 MusicTracks.lua
+BattleFrames.lua
+BattleFrames.xml
 Options.lua
