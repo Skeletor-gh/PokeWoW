@@ -32,5 +32,15 @@ ns.MusicTracks = {
             path = "Interface\\AddOns\\PokeWoW\\Tracks\\StreetFighter_ryu.mp3",
             length = 29,
         },
+        {
+            name = "PK Leaf Wild",
+            path = "Interface\\AddOns\\PokeWoW\\Tracks\\Leaf_Wild.ogg",
+            length = 82,
+        },
+        {
+            name = "PK RGB Wild",
+            path = "Interface\\AddOns\\PokeWoW\\Tracks\\Red_Wild.ogg",
+            length = 78,
+        },
     },
 }
