@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: PokeWoW
 ## Notes: UX and QoL tools for Pet Battles.
 ## Author: skeletor-gh
